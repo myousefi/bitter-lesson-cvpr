@@ -5,7 +5,12 @@ description = "Some exploration on CVPR digest to see how community has embraced
 authors = [
     { name = "Mojtaba Yousefi", email = "mojtaba.yousefi@live.com" }
 ]
-dependencies = []
+dependencies = [
+    "beautifulsoup4>=4.12.3",
+    "requests>=2.32.3",
+    "selenium>=4.21.0",
+    "semanticscholar>=0.8.2",
+]
 readme = "README.md"
 requires-python = ">= 3.8"
 
