@@ -8,3 +8,174 @@
 #   with-sources: false
 
 -e file:.
+annotated-types==0.7.0
+    # via pydantic
+anyio==4.4.0
+    # via httpx
+    # via openai
+appnope==0.1.4
+    # via ipykernel
+asttokens==2.4.1
+    # via stack-data
+blinker==1.8.2
+    # via flask
+certifi==2024.6.2
+    # via httpcore
+    # via httpx
+    # via requests
+charset-normalizer==3.3.2
+    # via requests
+click==8.1.7
+    # via flask
+comm==0.2.2
+    # via ipykernel
+dash==2.17.1
+    # via bitter-lesson-cvpr
+dash-core-components==2.0.0
+    # via dash
+dash-html-components==2.0.0
+    # via dash
+dash-table==5.0.0
+    # via dash
+debugpy==1.8.1
+    # via ipykernel
+decorator==5.1.1
+    # via ipython
+distro==1.9.0
+    # via openai
+executing==2.0.1
+    # via stack-data
+filetype==1.2.0
+    # via magentic
+flask==3.0.3
+    # via dash
+h11==0.14.0
+    # via httpcore
+httpcore==1.0.5
+    # via httpx
+httpx==0.27.0
+    # via openai
+idna==3.7
+    # via anyio
+    # via httpx
+    # via requests
+importlib-metadata==7.1.0
+    # via dash
+ipykernel==6.29.4
+    # via bitter-lesson-cvpr
+ipython==8.25.0
+    # via ipykernel
+itsdangerous==2.2.0
+    # via flask
+jedi==0.19.1
+    # via ipython
+jinja2==3.1.4
+    # via flask
+jupyter-client==8.6.2
+    # via ipykernel
+jupyter-core==5.7.2
+    # via ipykernel
+    # via jupyter-client
+magentic==0.26.0
+    # via bitter-lesson-cvpr
+markupsafe==2.1.5
+    # via jinja2
+    # via werkzeug
+matplotlib-inline==0.1.7
+    # via ipykernel
+    # via ipython
+nest-asyncio==1.6.0
+    # via dash
+    # via ipykernel
+numpy==2.0.0
+    # via pandas
+openai==1.34.0
+    # via magentic
+packaging==24.1
+    # via ipykernel
+    # via plotly
+pandas==2.2.2
+    # via bitter-lesson-cvpr
+parso==0.8.4
+    # via jedi
+pexpect==4.9.0
+    # via ipython
+platformdirs==4.2.2
+    # via jupyter-core
+plotly==5.22.0
+    # via bitter-lesson-cvpr
+    # via dash
+prompt-toolkit==3.0.47
+    # via ipython
+psutil==5.9.8
+    # via ipykernel
+ptyprocess==0.7.0
+    # via pexpect
+pure-eval==0.2.2
+    # via stack-data
+pydantic==2.7.4
+    # via magentic
+    # via openai
+    # via pydantic-settings
+pydantic-core==2.18.4
+    # via pydantic
+pydantic-settings==2.3.3
+    # via magentic
+pygments==2.18.0
+    # via ipython
+python-dateutil==2.9.0.post0
+    # via jupyter-client
+    # via pandas
+python-dotenv==1.0.1
+    # via pydantic-settings
+pytz==2024.1
+    # via pandas
+pyzmq==26.0.3
+    # via ipykernel
+    # via jupyter-client
+requests==2.32.3
+    # via dash
+retrying==1.3.4
+    # via dash
+setuptools==70.0.0
+    # via dash
+six==1.16.0
+    # via asttokens
+    # via python-dateutil
+    # via retrying
+sniffio==1.3.1
+    # via anyio
+    # via httpx
+    # via openai
+stack-data==0.6.3
+    # via ipython
+tenacity==8.4.1
+    # via plotly
+tornado==6.4.1
+    # via ipykernel
+    # via jupyter-client
+tqdm==4.66.4
+    # via openai
+traitlets==5.14.3
+    # via comm
+    # via ipykernel
+    # via ipython
+    # via jupyter-client
+    # via jupyter-core
+    # via matplotlib-inline
+typing-extensions==4.12.2
+    # via dash
+    # via openai
+    # via pydantic
+    # via pydantic-core
+tzdata==2024.1
+    # via pandas
+urllib3==2.2.2
+    # via requests
+wcwidth==0.2.13
+    # via prompt-toolkit
+werkzeug==3.0.3
+    # via dash
+    # via flask
+zipp==3.19.2
+    # via importlib-metadata
