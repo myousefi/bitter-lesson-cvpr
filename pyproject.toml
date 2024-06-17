@@ -1,7 +1,7 @@
 [project]
 name = "bitter-lesson-cvpr"
 version = "0.1.0"
-description = "Add your description here"
+description = "Some exploration on CVPR digest to see how community has embraced the \"Bitter Lesson\""
 authors = [
     { name = "Mojtaba Yousefi", email = "mojtaba.yousefi@live.com" }
 ]
@@ -16,6 +16,14 @@ build-backend = "hatchling.build"
 [tool.rye]
 managed = true
 dev-dependencies = []
+
+[tool.rye.dependencies]
+ipykernel = "*"
+plotly = "*"
+dash = "*"
+pandas = "*"
+openai = "*"
+pydantic = "*"
 
 [tool.hatch.metadata]
 allow-direct-references = true
