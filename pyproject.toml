@@ -16,6 +16,10 @@ dependencies = [
     "python-dotenv>=1.0.1",
     "magentic>=0.26.0",
     "webdriver-manager>=4.0.1",
+    "ipykernel>=6.29.4",
+    "plotly>=5.22.0",
+    "pandas>=2.2.2",
+    "nbformat>=5.10.4",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"
