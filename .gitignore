@@ -12,3 +12,7 @@ data/*
 outputs/*
 .env
 .DS_Store
+database-schemas.sql
+cvpr_papers.db
+plot_example.py
+src/bitter_lesson_cvpr/plot_template.py
