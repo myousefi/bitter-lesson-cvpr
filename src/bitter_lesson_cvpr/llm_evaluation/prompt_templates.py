@@ -5,64 +5,74 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+from pydantic import BaseModel, Field
 
 class BitterLessonScores(BaseModel):
-    general_methods_usage_justification: str = Field(
-        min_length=10,
-        max_length=500,
-        description="A brief 1-2 sentence justification for the general methods usage score.",
-    )
-    general_methods_usage_score: int = Field(
+    generality_of_approach_score: int = Field(
         ge=0,
         le=10,
-        description="How extensively does the abstract rely on general, scalable methods versus specialized, domain-specific techniques? (0-10)",
+        description="Rate the generality of the approach described in the abstract. Is it a highly specialized and tailored solution for a specific domain or problem (score closer to 0), or is it a completely general approach that can be applied to any domain or problem (score closer to 10)? Consider the breadth of applicability and the level of domain-specificity.",
     )
-    computation_data_scaling_justification: str = Field(
-        min_length=10,
-        max_length=500,
-        description="A brief 1-2 sentence justification for the computation and data scaling score.",
-    )
-    computation_data_scaling_score: int = Field(
+    reliance_on_human_knowledge_score: int = Field(
         ge=0,
         le=10,
-        description="To what extent does the methodology emphasize leveraging large-scale data or computational power? (0-10)",
+        description="Evaluate the extent to which the approach relies on human knowledge, heuristics, and domain-specific insights (score closer to 0), or if it operates without any reliance on human knowledge or domain-specific heuristics (score closer to 10). Consider the level of human involvement and the use of hand-crafted rules or heuristics.",
     )
-    feature_learning_vs_engineering_justification: str = Field(
-        min_length=10,
-        max_length=500,
-        description="A brief 1-2 sentence justification for the feature learning vs engineering score.",
-    )
-    feature_learning_vs_engineering_score: int = Field(
+    scalability_with_computation_score: int = Field(
         ge=0,
         le=10,
-        description="Does the abstract highlight systems that learn features and behaviors autonomously rather than through hand-engineered processes? (0-10)",
+        description="Assess how well the performance of the approach scales with increased computation power. If the performance is limited by the available computation and does not scale well (score closer to 0), or if the performance scales seamlessly with increased computation power (score closer to 10). Consider the computational complexity and the ability to leverage more resources.",
     )
-    robustness_adaptability_justification: str = Field(
-        min_length=10,
-        max_length=500,
-        description="A brief 1-2 sentence justification for the robustness and adaptability score.",
-    )
-    robustness_adaptability_score: int = Field(
+    leveraging_search_and_learning_score: int = Field(
         ge=0,
         le=10,
-        description="How well does the approach adapt to new or varying data sets without requiring re-engineering? (0-10)",
+        description="Evaluate the extent to which the approach leverages search and learning techniques as core methods. If it does not leverage search or learning at all (score closer to 0), or if it heavily leverages search and learning (score closer to 10). Consider the use of optimization, reinforcement learning, or other search and learning algorithms.",
     )
-
+    complexity_handling_score: int = Field(
+        ge=0,
+        le=10,
+        description="Rate the ability of the approach to handle complex, high-dimensional, or arbitrary problem spaces. If it struggles with complexity (score closer to 0), or if it excels at handling complex, high-dimensional, and arbitrary problem spaces (score closer to 10). Consider the dimensionality, non-linearity, and complexity of the problem domain.",
+    )
+    adaptability_and_generalization_score: int = Field(
+        ge=0,
+        le=10,
+        description="Assess the adaptability and generalization capabilities of the approach. If it is rigid and inflexible, with poor generalization to new scenarios (score closer to 0), or if it is highly adaptable and capable of generalizing to new, unseen scenarios (score closer to 10). Consider the ability to transfer knowledge and adapt to new data or environments.",
+    )
+    autonomy_and_discovery_score: int = Field(
+        ge=0,
+        le=10,
+        description="Evaluate the level of autonomy and discovery exhibited by the approach. If it relies heavily on human-provided knowledge and discoveries (score closer to 0), or if it is capable of autonomous discovery and learning without human input (score closer to 10). Consider the level of human involvement in the learning process and the ability to discover new knowledge independently.",
+    )
+    overall_bitter_lesson_alignment_score: int = Field(
+        ge=0,
+        le=10,
+        description="Provide an overall assessment of how well the abstract aligns with the principles of the Bitter Lesson, considering all factors. A score closer to 0 indicates poor alignment, while a score closer to 10 indicates strong alignment with the Bitter Lesson's emphasis on general methods that leverage computation over human knowledge and domain-specific heuristics.",
+    )
 
 @prompt(
     """
 Title: {title}
 Abstract: {abstract}
 
-Evaluate the alignment of the abstract to the "bitter lesson" based on the following dimensions:
+The "bitter lesson" by Rich Sutton states that general methods that leverage computation are ultimately the most effective, and that leveraging computation and learning should be prioritized over human knowledge in AI systems.
 
-General Methods Usage: How extensively does the abstract rely on general, scalable methods versus specialized, domain-specific techniques? Provide a brief 1-2 sentence justification, then a score from 0 (does not demonstrate this principle at all) to 10 (fully embodies this principle). 5 would indicate the abstract somewhat adheres to the principle.
+Evaluate the alignment of the abstract to the "bitter lesson" based on the following dimensions, assigning a score from 0 (does not demonstrate this principle at all) to 10 (fully embodies this principle). 5 would indicate the abstract somewhat adheres to the principle. 
 
-Computation and Data Scaling: To what extent does the methodology emphasize leveraging large-scale data or computational power? Provide a brief 1-2 sentence justification, then a score from 0 to 10.
+Generality of Approach: Rate the generality of the approach described in the abstract. Is it a highly specialized and tailored solution for a specific domain or problem (score closer to 0), or is it a completely general approach that can be applied to any domain or problem (score closer to 10)? Consider the breadth of applicability and the level of domain-specificity. :
 
-Feature Learning versus Engineering: Does the abstract highlight systems that learn features and behaviors autonomously rather than through hand-engineered processes? Provide a brief 1-2 sentence justification, then a score from 0 to 10.
+Reliance on Human Knowledge: Evaluate the extent to which the approach relies on human knowledge, heuristics, and domain-specific insights (score closer to 0), or if it operates without any reliance on human knowledge or domain-specific heuristics (score closer to 10). Consider the level of human involvement and the use of hand-crafted rules or heuristics. :
 
-Robustness and Adaptability: How well does the approach adapt to new or varying data sets without requiring re-engineering? Provide a brief 1-2 sentence justification, then a score from 0 to 10.
+Scalability with Computation: Assess how well the performance of the approach scales with increased computation power. If the performance is limited by the available computation and does not scale well (score closer to 0), or if the performance scales seamlessly with increased computation power (score closer to 10). Consider the computational complexity and the ability to leverage more resources. :
+
+Leveraging Search and Learning: Evaluate the extent to which the approach leverages search and learning techniques as core methods. If it does not leverage search or learning at all (score closer to 0), or if it heavily leverages search and learning (score closer to 10). Consider the use of optimization, reinforcement learning, or other search and learning algorithms. :
+
+Complexity Handling: Rate the ability of the approach to handle complex, high-dimensional, or arbitrary problem spaces. If it struggles with complexity (score closer to 0), or if it excels at handling complex, high-dimensional, and arbitrary problem spaces (score closer to 10). Consider the dimensionality, non-linearity, and complexity of the problem domain. :
+
+Adaptability and Generalization: Assess the adaptability and generalization capabilities of the approach. If it is rigid and inflexible, with poor generalization to new scenarios (score closer to 0), or if it is highly adaptable and capable of generalizing to new, unseen scenarios (score closer to 10). Consider the ability to transfer knowledge and adapt to new data or environments. :
+
+Autonomy and Discovery: Evaluate the level of autonomy and discovery exhibited by the approach. If it relies heavily on human-provided knowledge and discoveries (score closer to 0), or if it is capable of autonomous discovery and learning without human input (score closer to 10). Consider the level of human involvement in the learning process and the ability to discover new knowledge independently. :
+
+Overall Bitter Lesson Alignment: Provide an overall assessment of how well the abstract aligns with the principles of the Bitter Lesson, considering all factors. A score closer to 0 indicates poor alignment, while a score closer to 10 indicates strong alignment with the Bitter Lesson's emphasis on general methods that leverage computation over human knowledge and domain-specific heuristics. :
 """
 )
 def evaluate_bitter_lesson_alignment(
@@ -71,9 +81,9 @@ def evaluate_bitter_lesson_alignment(
 
 
 if __name__ == "__main__":
-    title = "The Neglected Tails in Vision-Language Models"
+    title = "Kervolutional Neural Networks"
     abstract = """
-    Vision-language models (VLMs) excel in zero-shot recognition but their performance varies greatly across different visual concepts. For example although CLIP achieves impressive accuracy on ImageNet (60-80%) its performance drops below 10% for more than ten concepts like night snake presumably due to their limited presence in the pretraining data. However measuring the frequency of concepts in VLMs' large-scale datasets is challenging. We address this by using large language models (LLMs) to count the number of pretraining texts that contain synonyms of these concepts. Our analysis confirms that popular datasets such as LAION exhibit a long-tailed concept distribution yielding biased performance in VLMs. We also find that downstream applications of VLMs including visual chatbots (e.g. GPT-4V) and text-to-image models (e.g. Stable Diffusion) often fail to recognize or generate images of rare concepts identified by our method. To mitigate the imbalanced performance of zero-shot VLMs we propose REtrieval-Augmented Learning (REAL). First instead of prompting VLMs using the original class names REAL uses their most frequent synonyms found in pretraining texts. This simple change already outperforms costly human-engineered and LLM-enriched prompts over nine benchmark datasets. Second REAL trains a linear classifier on a small yet balanced set of pretraining data retrieved using concept synonyms. REAL surpasses the previous zero-shot SOTA using 400x less storage and 10000x less training time!
+    Convolutional neural networks (CNNs) have enabled the state-of-the-art performance in many computer vision tasks. However, little effort has been devoted to establishing convolution in non-linear space. Existing works mainly leverage on the activation layers, which can only provide point-wise non-linearity. To solve this problem, a new operation, kervolution (kernel convolution), is introduced to approximate complex behaviors of human perception systems leveraging on the kernel trick. It generalizes convolution, enhances the model capacity, and captures higher order interactions of features, via patch-wise kernel functions, but without introducing additional parameters. Extensive experiments show that kervolutional neural networks (KNN) achieve higher accuracy and faster convergence than baseline CNN.
     """
 
     scores = evaluate_bitter_lesson_alignment(title=title, abstract=abstract)
