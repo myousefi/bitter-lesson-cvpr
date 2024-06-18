@@ -6,7 +6,12 @@ import pandas as pd
 import plotly.express as px
 import plotly.io as pio
 
-OUTPUT_DIR = "/Users/moji/Projects/personal-portfolio-website/static/plotly/"
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+OUTPUT_DIR = os.getenv("OUTPUT_DIR")
 
 # Connect to the database
 conn = sqlite3.connect('/Users/moji/Projects/bitter-lesson-cvpr/cvpr_papers.db')
@@ -132,5 +137,97 @@ pio.write_json(fig, OUTPUT_DIR+'stacked_bar_plot.json')
 
 
 fig.show(renderer="browser")
+
+# %%
+# %%
+# Create scatter plots for each year from 2013 to 2020
+import statsmodels.formula.api as sm
+import numpy as np 
+
+for year in range(2013, 2025):
+    # SQL query to get bitter_lesson_score and citation count for the specific year
+    query = f"""
+    SELECT 
+        bls.generality_of_approach_score + 
+        bls.reliance_on_human_knowledge_score + 
+        bls.scalability_with_computation_score + 
+        bls.leveraging_search_and_learning_score + 
+        bls.complexity_handling_score + 
+        bls.adaptability_and_generalization_score + 
+        bls.autonomy_and_discovery_score AS bitter_lesson_score,
+        ss.citationCount,
+        p.title,
+        p.authors
+    FROM papers AS p
+    JOIN bitter_lesson_scores AS bls ON p.id = bls.paper_id
+    JOIN semantic_scholar_data AS ss ON p.id = ss.paper_id
+    WHERE p.year = {year}
+    ORDER BY bitter_lesson_score;
+    """
+
+    # Load data into a Pandas DataFrame
+    df = pd.read_sql_query(query, conn)
+
+    df = df.dropna()
+
+    df['citationCount'] = df['citationCount'].replace(0, 1)
+
+    # Create a new column with the log of citationCount
+    df['log_citationCount'] = np.log(df['citationCount'])
+
+    # Create the scatter plot
+    fig = px.scatter(
+        df, 
+        x="bitter_lesson_score", 
+        y="citationCount", 
+        log_y=True,  # Set y-axis to logarithmic scale
+        title=f"Bitter Lesson Score vs. Citations (CVPR {year})",
+        hover_data=["title", "authors"],  # Show title and authors on hover
+        template="simple_white"
+    )
+    
+        # Fit OLS regression on the log of citationCount
+    results = sm.ols('log_citationCount ~ bitter_lesson_score', data=df).fit()
+
+    # Get p-value of the bitter_lesson_score coefficient
+    p_value = results.pvalues['bitter_lesson_score']
+
+    # Create a new DataFrame for the OLS line
+    ols_df = pd.DataFrame({'bitter_lesson_score': df['bitter_lesson_score']})
+    ols_df['log_citationCount'] = results.predict(ols_df)
+    ols_df['citationCount'] = np.exp(ols_df['log_citationCount'])
+
+    # Add OLS line to the plot
+    fig.add_trace(
+        go.Scatter(
+            x=ols_df['bitter_lesson_score'], 
+            y=ols_df['citationCount'], 
+            mode='lines', 
+            name='OLS Fit',
+            line=dict(color='red')
+        )
+    )
+
+    # Add p-value annotation to the plot
+    fig.add_annotation(
+        text=f"p-value: {p_value:.3f}",
+        xref="paper", yref="paper",
+        x=0.05, y=0.95, showarrow=False,
+        font=dict(size=12)
+    )
+
+    # Customize the plot layout
+    fig.update_layout(
+        xaxis_title="Bitter Lesson Score",
+        yaxis_title="Citation Count (Log Scale)",
+        xaxis=dict(tickfont=dict(size=14)),
+        yaxis=dict(tickfont=dict(size=14)),
+    )
+
+    # Save the plot as a JSON file
+    pio.write_json(fig, OUTPUT_DIR + f'scatter_plot_{year}.json')
+
+    # Display the plot (optional)
+    fig.show(renderer="browser")
 
 # %%
