@@ -1,150 +1,64 @@
 import json
 import sqlite3
+import os
+import re
 
-def migrate_json_to_sqlite(json_file, db_file):
-    """
-    Migrates data from a JSON file to a SQLite database.
+def create_database(db_name="cvpr_papers.db"):
+    """Creates a SQLite database with the specified name and table structure."""
 
-    Args:
-        json_file (str): Path to the JSON file.
-        db_file (str): Path to the SQLite database file.
-    """
-
-    with open(json_file, 'r') as f:
-        data = json.load(f)
-
-    conn = sqlite3.connect(db_file)
+    conn = sqlite3.connect(db_name)
     cursor = conn.cursor()
 
-    # Create tables (if they don't exist)
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS PublicationVenues (
-            publicationVenueId TEXT PRIMARY KEY,
-            name TEXT,
-            type TEXT,
-            issn TEXT,
-            url TEXT
-        )
-    """)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS Papers (
-            paperId TEXT PRIMARY KEY,
-            title TEXT,
+        CREATE TABLE IF NOT EXISTS papers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            year INTEGER NOT NULL,
+            title TEXT NOT NULL,
+            authors TEXT,
             abstract TEXT,
-            year INTEGER,
-            publicationVenueId TEXT,
-            FOREIGN KEY (publicationVenueId) REFERENCES PublicationVenues(publicationVenueId)
+            pdf_link TEXT
         )
     """)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS Authors (
-            authorId TEXT PRIMARY KEY,
-            name TEXT
-        )
-    """)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS PaperAuthors (
-            paperId TEXT,
-            authorId TEXT,
-            PRIMARY KEY (paperId, authorId),
-            FOREIGN KEY (paperId) REFERENCES Papers(paperId),
-            FOREIGN KEY (authorId) REFERENCES Authors(authorId)
-        )
-    """)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS AlternateVenueNames (
-            venueNameId INTEGER PRIMARY KEY AUTOINCREMENT,
-            publicationVenueId TEXT,
-            alternateName TEXT,
-            FOREIGN KEY (publicationVenueId) REFERENCES PublicationVenues(publicationVenueId)
-        )
-    """)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS AlternateVenueURLs (
-            venueURLId INTEGER PRIMARY KEY AUTOINCREMENT,
-            publicationVenueId TEXT,
-            alternateURL TEXT,
-            FOREIGN KEY (publicationVenueId) REFERENCES PublicationVenues(publicationVenueId)
-        )
-    """)
-
-    # Insert data
-    for item in data:
-        # Publication Venues
-        publication_venue = item.get('publicationVenue', {})
-        cursor.execute(
-            """
-            INSERT OR IGNORE INTO PublicationVenues (publicationVenueId, name, type, issn, url)
-            VALUES (?, ?, ?, ?, ?)
-            """,
-            (
-                publication_venue.get('id'),
-                publication_venue.get('name'),
-                publication_venue.get('type'),
-                publication_venue.get('issn'),
-                publication_venue.get('url')
-            )
-        )
-
-        # Alternate Venue Names
-        for alt_name in publication_venue.get('alternate_names', []):
-            cursor.execute(
-                """
-                INSERT OR IGNORE INTO AlternateVenueNames (publicationVenueId, alternateName)
-                VALUES (?, ?)
-                """,
-                (publication_venue.get('id'), alt_name)
-            )
-
-        # Alternate Venue URLs
-        for alt_url in publication_venue.get('alternate_urls', []):
-            cursor.execute(
-                """
-                INSERT OR IGNORE INTO AlternateVenueURLs (publicationVenueId, alternateURL)
-                VALUES (?, ?)
-                """,
-                (publication_venue.get('id'), alt_url)
-            )
-
-        # Papers
-        cursor.execute(
-            """
-            INSERT OR IGNORE INTO Papers (paperId, title, abstract, year, publicationVenueId)
-            VALUES (?, ?, ?, ?, ?)
-            """,
-            (
-                item.get('paperId'),
-                item.get('title'),
-                item.get('abstract'),
-                item.get('year'),
-                publication_venue.get('id')
-            )
-        )
-
-        # Authors
-        for author in item.get('authors', []):
-            cursor.execute(
-                """
-                INSERT OR IGNORE INTO Authors (authorId, name)
-                VALUES (?, ?)
-                """,
-                (author.get('authorId'), author.get('name'))
-            )
-
-            # PaperAuthors
-            cursor.execute(
-                """
-                INSERT OR IGNORE INTO PaperAuthors (paperId, authorId)
-                VALUES (?, ?)
-                """,
-                (item.get('paperId'), author.get('authorId'))
-            )
 
     conn.commit()
     conn.close()
 
+def insert_data(data, year, db_name="cvpr_papers.db"):
+    """Inserts data into the SQLite database."""
+
+    conn = sqlite3.connect(db_name)
+    cursor = conn.cursor()
+
+    for item in data:
+        title = item.get("title")
+        authors = ", ".join(item.get("authors", []))
+        abstract = item.get("abstract")
+        pdf_link = item.get("related_material", {}).get("pdf")
+
+        cursor.execute(
+            """
+            INSERT INTO papers (year, title, authors, abstract, pdf_link)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (year, title, authors, abstract, pdf_link),
+        )
+
+    conn.commit()
+    conn.close()
+
+def process_json_files(directory):
+    """Processes all JSON files in the given directory."""
+
+    create_database()
+
+    for filename in os.listdir(directory):
+        if filename.endswith(".json"):
+            filepath = os.path.join(directory, filename)
+            year = int(re.findall(r"\d+", filename)[0])
+
+            with open(filepath, "r") as f:
+                data = json.load(f)
+                insert_data(data, year)
+
 if __name__ == "__main__":
-    json_file = "/Users/moji/Projects/bitter-lesson-cvpr/data/cvpr_2024_abstract.json"  # Replace with your JSON file path
-    db_file = "/Users/moji/Projects/bitter-lesson-cvpr/data/database.db"  # Replace with your desired database file name
-    migrate_json_to_sqlite(json_file, db_file)
-    print(f"Data migrated from '{json_file}' to '{db_file}' successfully!")
+    process_json_files("/Users/moji/Projects/bitter-lesson-cvpr/data/thecvf/cvpr/")
