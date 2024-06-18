@@ -6,11 +6,21 @@ authors = [
     { name = "Mojtaba Yousefi", email = "mojtaba.yousefi@live.com" }
 ]
 dependencies = [
+    "beautifulsoup4>=4.12.3",
+    "requests>=2.32.3",
+    "selenium>=4.21.0",
+    "semanticscholar>=0.8.2",
+    "aiohttp>=3.9.5",
+    "asyncio>=3.4.3",
+    "tqdm>=4.66.4",
+    "python-dotenv>=1.0.1",
     "magentic>=0.26.0",
+    "webdriver-manager>=4.0.1",
     "ipykernel>=6.29.4",
     "plotly>=5.22.0",
-    "dash>=2.17.1",
     "pandas>=2.2.2",
+    "nbformat>=5.10.4",
+    "statsmodels>=0.14.2",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"
