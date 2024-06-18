@@ -14,7 +14,7 @@ load_dotenv()
 OUTPUT_DIR = os.getenv("OUTPUT_DIR")
 
 # Connect to the database
-conn = sqlite3.connect('/Users/moji/Projects/bitter-lesson-cvpr/cvpr_papers.db')
+conn = sqlite3.connect('/dbs/cvpr_papers.db')
 
 # %%
 # SQL query to get all tables and columns

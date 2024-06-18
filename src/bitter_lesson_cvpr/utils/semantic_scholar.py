@@ -15,7 +15,7 @@ S2_API_KEY = os.getenv("S2_API_KEY")
 url = "https://api.semanticscholar.org/graph/v1/paper/search"
 
 # Database connection
-conn = sqlite3.connect('/Users/moji/Projects/bitter-lesson-cvpr/cvpr_papers.db')
+conn = sqlite3.connect('/dbs/cvpr_papers.db')
 cursor = conn.cursor()
 
 # Create the new table if it doesn't exist
