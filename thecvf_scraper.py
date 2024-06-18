@@ -6,6 +6,7 @@ import aiohttp
 from tqdm.asyncio import tqdm
 import time
 from aiohttp.client_exceptions import ClientOSError, ServerDisconnectedError
+import sqlite3
 
 async def extract_paper_info(session, paper_url, retries=3, delay=1):
     """Extracts paper information from a given paper URL with retries."""
@@ -67,10 +68,48 @@ async def write_to_json(queue, year):
             f.write('\n')
             queue.task_done()
 
-async def scrape_cvpr_papers(base_url, year, day="all",batch_size=10, delay=1):
-    """Scrapes CVPR papers with batching and rate limiting."""
-    all_papers = []
-    paper_queue = asyncio.Queue()
+
+def create_database(db_name="cvpr_papers.db"):
+    """Creates a SQLite database with the specified name and table structure."""
+    conn = sqlite3.connect(db_name)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS papers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            year INTEGER NOT NULL,
+            title TEXT NOT NULL,
+            authors TEXT,
+            abstract TEXT,
+            pdf_link TEXT
+        )
+    """)
+
+    conn.commit()
+    conn.close()
+async def insert_paper_data(paper_info, year, db_name="cvpr_papers.db"):
+    """Inserts paper data into the SQLite database."""
+    conn = sqlite3.connect(db_name)
+    cursor = conn.cursor()
+
+    title = paper_info.get("title")
+    authors = ", ".join(paper_info.get("authors", []))
+    abstract = paper_info.get("abstract")
+    pdf_link = paper_info.get("related_material", {}).get("pdf")
+
+    cursor.execute(
+        """
+        INSERT INTO papers (year, title, authors, abstract, pdf_link)
+        VALUES (?, ?, ?, ?, ?)
+        """,
+        (year, title, authors, abstract, pdf_link),
+    )
+
+    conn.commit()
+    conn.close()
+
+async def scrape_cvpr_papers(base_url, year, day="all", batch_size=10, delay=1):
+    """Scrapes CVPR papers with batching, rate limiting, and direct DB insertion."""
 
     async with aiohttp.ClientSession() as session:
         response = await session.get(f"{base_url}/CVPR{year}?day={day}")
@@ -79,29 +118,27 @@ async def scrape_cvpr_papers(base_url, year, day="all",batch_size=10, delay=1):
         soup = BeautifulSoup(await response.text(), 'html.parser')
         paper_links = soup.find_all('dt', class_='ptitle')
 
-        # Start the writer task
-        writer_task = asyncio.create_task(write_to_json(paper_queue, year))
-
         # Process links in batches with rate limiting
         for i in range(0, len(paper_links), batch_size):
             batch_links = paper_links[i:i + batch_size]
             tasks = [extract_paper_info(session, f"{base_url}{link.find('a')['href']}") 
-             for link in batch_links]
+                     for link in batch_links]
             for coro in tqdm(asyncio.as_completed(tasks), total=len(tasks)):
                 paper_info = await coro
-                if paper_info:  # Only add successful results
-                    all_papers.append(paper_info)
-                    await paper_queue.put(paper_info)
-            await asyncio.sleep(delay)  # Wait between batches
-
-        # Signal the writer to stop after processing all items
-        await paper_queue.put(None)
-        await writer_task
-
-    return all_papers
+                if paper_info: 
+                    await insert_paper_data(paper_info, year) 
+            await asyncio.sleep(delay)  
 
 if __name__ == '__main__':
+
+    create_database() 
+
     for year, day in [
+        (2013, "all"),
+        (2014, "all"),
+        (2015, "all"),
+        (2016, "all"),
+        (2017, "all"),
         (2018,"2018-06-19"),
         (2018,"2018-06-20"),
         (2018,"2018-06-21"),
@@ -111,6 +148,11 @@ if __name__ == '__main__':
         (2020,"2020-06-16"),
         (2020,"2020-06-17"),
         (2020,"2020-06-18"),
+        (2021, "all"),
+        (2022, "all"),
+        (2023, "all"),
+        (2024, "all")
     ]:
+
         base_url = f"https://openaccess.thecvf.com/"
         asyncio.run(scrape_cvpr_papers(base_url, year, day))

@@ -81,9 +81,9 @@ def evaluate_bitter_lesson_alignment(
 
 
 if __name__ == "__main__":
-    title = "Kervolutional Neural Networks"
+    title = "Articulated Pose Estimation Using Discriminative Armlet Classifiers"
     abstract = """
-    Convolutional neural networks (CNNs) have enabled the state-of-the-art performance in many computer vision tasks. However, little effort has been devoted to establishing convolution in non-linear space. Existing works mainly leverage on the activation layers, which can only provide point-wise non-linearity. To solve this problem, a new operation, kervolution (kernel convolution), is introduced to approximate complex behaviors of human perception systems leveraging on the kernel trick. It generalizes convolution, enhances the model capacity, and captures higher order interactions of features, via patch-wise kernel functions, but without introducing additional parameters. Extensive experiments show that kervolutional neural networks (KNN) achieve higher accuracy and faster convergence than baseline CNN.
+    We propose a novel approach for human pose estimation in real-world cluttered scenes, and focus on the challenging problem of predicting the pose of both arms for each person in the image. For this purpose, we build on the notion of poselets [4] and train highly discriminative classifiers to differentiate among arm configurations, which we call armlets. We propose a rich representation which, in addition to standard HOG features, integrates the information of strong contours, skin color and contextual cues in a principled manner. Unlike existing methods, we evaluate our approach on a large subset of images from the PASCAL VOC detection dataset, where critical visual phenomena, such as occlusion, truncation, multiple instances and clutter are the norm. Our approach outperforms Yang and Ramanan [26], the state-of-the-art technique, with an improvement from 29.0% to 37.5% PCP accuracy on the arm keypoint prediction task, on this new pose estimation dataset.
     """
 
     scores = evaluate_bitter_lesson_alignment(title=title, abstract=abstract)
