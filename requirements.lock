@@ -31,6 +31,8 @@ attrs==23.2.0
     # via trio
 beautifulsoup4==4.12.3
     # via bitter-lesson-cvpr
+bibtexparser==1.4.1
+    # via bitter-lesson-cvpr
 certifi==2024.6.2
     # via httpcore
     # via httpx
@@ -143,6 +145,8 @@ pydantic-settings==2.3.3
     # via magentic
 pygments==2.18.0
     # via ipython
+pyparsing==3.1.2
+    # via bibtexparser
 pysocks==1.7.1
     # via urllib3
 python-dateutil==2.9.0.post0
