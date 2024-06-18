@@ -33,14 +33,6 @@ build-backend = "hatchling.build"
 managed = true
 dev-dependencies = []
 
-[tool.rye.dependencies]
-ipykernel = "*"
-plotly = "*"
-dash = "*"
-pandas = "*"
-openai = "*"
-pydantic = "*"
-
 [tool.hatch.metadata]
 allow-direct-references = true
 
