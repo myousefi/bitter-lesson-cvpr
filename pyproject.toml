@@ -14,7 +14,7 @@ dependencies = [
     "asyncio>=3.4.3",
     "tqdm>=4.66.4",
     "python-dotenv>=1.0.1",
-    "magentic>=0.26.0",
+    "magentic[anthropic]>=0.26.0",
     "webdriver-manager>=4.0.1",
     "ipykernel>=6.29.4",
     "plotly>=5.22.0",
@@ -22,6 +22,7 @@ dependencies = [
     "nbformat>=5.10.4",
     "statsmodels>=0.14.2",
     "bibtexparser>=1.4.1",
+    "anthropic==0.28.1",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"
@@ -32,7 +33,9 @@ build-backend = "hatchling.build"
 
 [tool.rye]
 managed = true
-dev-dependencies = []
+dev-dependencies = [
+    "pip>=24.0",
+]
 
 [tool.hatch.metadata]
 allow-direct-references = true

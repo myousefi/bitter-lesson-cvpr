@@ -14,7 +14,11 @@ aiosignal==1.3.1
     # via aiohttp
 annotated-types==0.7.0
     # via pydantic
+anthropic==0.28.1
+    # via bitter-lesson-cvpr
+    # via magentic
 anyio==4.4.0
+    # via anthropic
     # via httpx
     # via openai
 appnope==0.1.4
@@ -47,24 +51,32 @@ debugpy==1.8.1
 decorator==5.1.1
     # via ipython
 distro==1.9.0
+    # via anthropic
     # via openai
 executing==2.0.1
     # via stack-data
 fastjsonschema==2.20.0
     # via nbformat
+filelock==3.15.1
+    # via huggingface-hub
 filetype==1.2.0
     # via magentic
 frozenlist==1.4.1
     # via aiohttp
     # via aiosignal
+fsspec==2024.6.0
+    # via huggingface-hub
 h11==0.14.0
     # via httpcore
     # via wsproto
 httpcore==1.0.5
     # via httpx
 httpx==0.27.0
+    # via anthropic
     # via openai
     # via semanticscholar
+huggingface-hub==0.23.4
+    # via tokenizers
 idna==3.7
     # via anyio
     # via httpx
@@ -77,6 +89,8 @@ ipython==8.25.0
     # via ipykernel
 jedi==0.19.1
     # via ipython
+jiter==0.4.2
+    # via anthropic
 jsonschema==4.22.0
     # via nbformat
 jsonschema-specifications==2023.12.1
@@ -110,6 +124,7 @@ openai==1.34.0
 outcome==1.3.0.post0
     # via trio
 packaging==24.1
+    # via huggingface-hub
     # via ipykernel
     # via plotly
     # via statsmodels
@@ -136,6 +151,7 @@ ptyprocess==0.7.0
 pure-eval==0.2.2
     # via stack-data
 pydantic==2.7.4
+    # via anthropic
     # via magentic
     # via openai
     # via pydantic-settings
@@ -158,6 +174,8 @@ python-dotenv==1.0.1
     # via webdriver-manager
 pytz==2024.1
     # via pandas
+pyyaml==6.0.1
+    # via huggingface-hub
 pyzmq==26.0.3
     # via ipykernel
     # via jupyter-client
@@ -166,6 +184,7 @@ referencing==0.35.1
     # via jsonschema-specifications
 requests==2.32.3
     # via bitter-lesson-cvpr
+    # via huggingface-hub
     # via webdriver-manager
 rpds-py==0.18.1
     # via jsonschema
@@ -181,6 +200,7 @@ six==1.16.0
     # via patsy
     # via python-dateutil
 sniffio==1.3.1
+    # via anthropic
     # via anyio
     # via httpx
     # via openai
@@ -196,11 +216,14 @@ statsmodels==0.14.2
 tenacity==8.4.1
     # via plotly
     # via semanticscholar
+tokenizers==0.19.1
+    # via anthropic
 tornado==6.4.1
     # via ipykernel
     # via jupyter-client
 tqdm==4.66.4
     # via bitter-lesson-cvpr
+    # via huggingface-hub
     # via openai
 traitlets==5.14.3
     # via comm
@@ -216,6 +239,8 @@ trio==0.25.1
 trio-websocket==0.11.1
     # via selenium
 typing-extensions==4.12.2
+    # via anthropic
+    # via huggingface-hub
     # via openai
     # via pydantic
     # via pydantic-core
