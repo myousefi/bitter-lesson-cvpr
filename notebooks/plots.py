@@ -14,7 +14,7 @@ load_dotenv()
 OUTPUT_DIR = os.getenv("OUTPUT_DIR")
 
 # Connect to the database
-conn = sqlite3.connect('/dbs/cvpr_papers.db')
+conn = sqlite3.connect('./dbs/cvpr_papers.db')
 
 # %%
 # SQL query to get all tables and columns
@@ -116,6 +116,9 @@ for column in df.columns[1:]:  # Skip the 'year' column
             x=df["year"],
             y=df[column],
             name=trace_name,
+            text=[f"{v:.2f}" for v in df[column]],  # Format text to 2 decimal places
+            textposition='inside',  # Place text inside the bars
+            insidetextanchor='middle'  # Center the text
         )
     )
 
@@ -134,7 +137,6 @@ fig.update_layout(
 )
 
 pio.write_json(fig, OUTPUT_DIR+'stacked_bar_plot.json')
-
 
 fig.show(renderer="browser")
 
