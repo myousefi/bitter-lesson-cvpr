@@ -18,3 +18,4 @@ plot_example.py
 src/bitter_lesson_cvpr/plot_template.py
 
 .idea/
+refs/*
