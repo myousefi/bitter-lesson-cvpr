@@ -7,7 +7,7 @@ from bitter_lesson_cvpr.llm_evaluation.prompt_templates import (
     BitterLessonScores,
 )
 
-DATABASE_PATH = "cvpr_papers.db"  # Replace with the actual path to your database
+DATABASE_PATH = "cvpr_papers.db" 
 SAMPLES_PER_YEAR = 90
 
 
