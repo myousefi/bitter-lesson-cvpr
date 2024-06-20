@@ -61,12 +61,21 @@ def evaluate_bitter_lesson_alignment(
 
 
 if __name__ == "__main__":
-    title = "Going Deeper with Convolutions"
+    title = "Softassign versus Softmax: Benchmarks in Combinatorial Optimization"
     abstract = """
-    We propose a deep convolutional neural network architecture codenamed "Inception", which was responsible for setting the new state of the art for classification and detection in the ImageNet Large-Scale Visual Recognition Challenge 2014 (ILSVRC 2014). The main hallmark of this architecture is the improved utilization of the computing resources inside the network. This was achieved by a carefully crafted design that allows for increasing the depth and width of the network while keeping the computational budget constant. To optimize quality, the architectural decisions were based on the Hebbian principle and the intuition of multi-scale processing. One particular incarnation used in our submission for ILSVRC 2014 is called GoogLeNet, a 22 layers deep network, the quality of which is assessed in the context of classification and detection.
+    A new technique, termed soft assign, is applied for the first time to two classic combinatorial optimization problems, the travel(cid:173) ing salesman problem and graph partitioning. Soft assign , which has emerged from the recurrent neural network/statistical physics framework, enforces two-way (assignment) constraints without the use of penalty terms in the energy functions. The soft assign can also be generalized from two-way winner-take-all constraints to multiple membership constraints which are required for graph par(cid:173) titioning. The soft assign technique is compared to the softmax (Potts glass). Within the statistical physics framework, softmax and a penalty term has been a widely used method for enforcing the two-way constraints common within many combinatorial optimiza(cid:173) tion problems. The benchmarks present evidence that soft assign has clear advantages in accuracy, speed, parallelizabilityand algo(cid:173) rithmic simplicity over softmax and a penalty term in optimization problems with two-way constraints.
     """
 
-    scores = evaluate_bitter_lesson_alignment(title=title, abstract=abstract)
+    from magentic.chat_model.anthropic_chat_model import AnthropicChatModel
+    from magentic.chat_model.openai_chat_model import OpenaiChatModel
+
+    import os 
+
+    # model = "claude-3-opus-20240229"
+    # with AnthropicChatModel(model=model, api_key=os.getenv("MAGENTIC_ANTHROPIC_API_KEY")):
+    # with OpenaiChatModel("gpt-4o", temperature=0):
+        scores = evaluate_bitter_lesson_alignment(title=title, abstract=abstract)
+
     print(f"Title: {title}")
     print(f"Abstract: {abstract}")
     print("\nBitter Lesson Scores:")
