@@ -5,6 +5,7 @@ import time
 
 from typing import List, Tuple
 
+from magentic import OpenaiChatModel
 from magentic.chat_model.anthropic_chat_model import AnthropicChatModel
 from openai import RateLimitError
 
@@ -14,7 +15,7 @@ from bitter_lesson_cvpr.llm_evaluation.prompt_v2 import (
 )
 
 DATABASE_PATH = "dbs/cvpr_papers.db"
-SAMPLES_PER_YEAR = 100
+SAMPLES_PER_YEAR = 1
 
 
 def create_scores_table_if_not_exists():
@@ -25,7 +26,7 @@ def create_scores_table_if_not_exists():
             """
             CREATE TABLE IF NOT EXISTS bitter_lesson_scores_v2 (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                paper_id INTEGER UNIQUE,
+                paper_id INTEGER,
                 model TEXT,
                 learning_over_engineering_score INTEGER,
                 search_over_heuristics_score INTEGER,
@@ -48,7 +49,7 @@ def get_random_papers(year: int, limit: int) -> List[Tuple[int, str, str]]:
             FROM papers 
             WHERE year = ?
             AND id IN (SELECT paper_id FROM bitter_lesson_scores)
-            AND id NOT IN (SELECT paper_id FROM bitter_lesson_scores_v2)
+            AND id NOT IN (SELECT paper_id FROM bitter_lesson_scores_v2 WHERE model = "claude-3-5-sonnet-20240620")
             ORDER BY RANDOM()
             LIMIT ?
             """,
@@ -61,6 +62,9 @@ def evaluate_and_store_scores(papers: List[Tuple[int, str, str]]):
     """Evaluates papers using the prompt template and stores the scores."""
     with sqlite3.connect(DATABASE_PATH) as conn:
         cursor = conn.cursor()
+
+        # model = "gpt-4o"
+        # with OpenaiChatModel(model, temperature=0):
         model = "claude-3-5-sonnet-20240620"
         with AnthropicChatModel(model=model, temperature=0, api_key=os.getenv("MAGENTIC_ANTHROPIC_API_KEY")):
             for paper_id, title, abstract in papers:
