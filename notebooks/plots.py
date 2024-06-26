@@ -5,6 +5,9 @@ import sqlite3
 import pandas as pd
 import plotly.express as px
 import plotly.io as pio
+import plotly.graph_objects as go
+import numpy as np
+import statsmodels.formula.api as sm
 
 import os
 from dotenv import load_dotenv
@@ -14,90 +17,21 @@ load_dotenv()
 OUTPUT_DIR = os.getenv("OUTPUT_DIR")
 
 # Connect to the database
-conn = sqlite3.connect('/dbs/cvpr_papers.db')
+conn = sqlite3.connect('./dbs/cvpr_papers.db')
 
 # %%
-# SQL query to get all tables and columns
-cursor = conn.cursor()
-cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-tables = cursor.fetchall()
-
-for table in tables:
-    print(f"Table: {table[0]}")
-    cursor.execute(f"PRAGMA table_info({table[0]});")
-    columns = cursor.fetchall()
-    for column in columns:
-        print(f"  Column: {column[1]} (Type: {column[2]})")
-
-
-# %%
-# SQL query to count papers per year
-query = """
-SELECT year AS publication_year, COUNT(*) AS paper_count
-FROM papers
-GROUP BY publication_year
-ORDER BY publication_year;
-"""
-
-# Load data into a Pandas DataFrame
-df = pd.read_sql_query(query, conn)
-
-# Create the bar plot
-import plotly.express as px
-import plotly.graph_objects as go
-
-# Assuming 'df' is your DataFrame with 'publication_year' and 'paper_count' columns
-
-# Create the bar plot using plotly.graph_objects for more customization
-fig = go.Figure(
-    data=[
-        go.Bar(
-            x=df["publication_year"],
-            y=df["paper_count"],
-            text=[f"{int(y)}" for y in df["paper_count"]],  # Add text labels to bars
-            textposition="auto",
-            textfont=dict(size=10),  # Adjust text size as needed
-        )
-    ],
-    layout=go.Layout(
-        title=dict(
-            text="Number of CVPR Papers Published Each Year",
-            font=dict(size=24),  # Adjust title font size as needed
-        ),
-        xaxis_title=dict(text="Year", font=dict(size=18)),
-        yaxis_title=dict(text="Number of Papers", font=dict(size=18)),
-        yaxis=dict(
-            tickfont=dict(size=14),
-            gridwidth=1,
-            gridcolor="LightGray",
-            # Adjust dtick for appropriate tick intervals
-        ),
-        xaxis=dict(
-            tickfont=dict(size=14), 
-            tickangle=45,  # Rotate x-axis labels by 45 degrees
-            dtick=1 # Display every year on x-axis
-        ),    
-    ),
-)
-
-pio.write_json(fig, OUTPUT_DIR+'bar_plot.json')
-
-fig.show(renderer="browser")
-
-# %%
-# SQL query to calculate average scores for each category per year
+# SQL query to calculate average scores for each category per year for gpt-4o
 query = """
 SELECT
     p.year,
-    AVG(bls.generality_of_approach_score) AS avg_generality_of_approach_score,
-    AVG(bls.reliance_on_human_knowledge_score) AS avg_reliance_on_human_knowledge_score,
+    AVG(bls.learning_over_engineering_score) AS avg_learning_over_engineering_score,
+    AVG(bls.search_over_heuristics_score) AS avg_search_over_heuristics_score,
     AVG(bls.scalability_with_computation_score) AS avg_scalability_with_computation_score,
-    AVG(bls.leveraging_search_and_learning_score) AS avg_leveraging_search_and_learning_score,
-    AVG(bls.complexity_handling_score) AS avg_complexity_handling_score,
-    AVG(bls.adaptability_and_generalization_score) AS avg_adaptability_and_generalization_score,
-    AVG(bls.autonomy_and_discovery_score) AS avg_autonomy_and_discovery_score
+    AVG(bls.generality_over_specificity_score) AS avg_generality_over_specificity_score,
+    AVG(bls.favoring_fundamental_principles_score) AS avg_favoring_fundamental_principles_score
 FROM papers AS p
-JOIN bitter_lesson_scores AS bls ON p.id = bls.paper_id
+JOIN bitter_lesson_scores_v2 AS bls ON p.id = bls.paper_id
+WHERE bls.model = 'gpt-4o'
 GROUP BY p.year
 ORDER BY p.year;
 """
@@ -105,25 +39,26 @@ ORDER BY p.year;
 # Load data into a Pandas DataFrame
 df = pd.read_sql_query(query, conn)
 
-# Create the stacked bar plot
+# Create the line plot
 fig = go.Figure()
 
-# Add a bar trace for each score category
+# Add a line trace for each score category
 for column in df.columns[1:]:  # Skip the 'year' column
     trace_name = column.replace("avg_", "").replace("_", " ").title().replace(" Score", "") 
     fig.add_trace(
-        go.Bar(
+        go.Scatter(
             x=df["year"],
             y=df[column],
+            mode='lines+markers',  # Use both lines and markers
             name=trace_name,
+            marker=dict(size=8),  # Adjust marker size as needed
         )
     )
 
-# Update layout for a stacked bar chart
+# Update layout 
 fig.update_layout(
-    barmode='stack',
     title=dict(
-        text="Average Bitter Lesson Scores Over Time (Stacked)",
+        text="Average Bitter Lesson Scores Over Time (gpt-4o)",
         font=dict(size=24)
     ),
     xaxis_title=dict(text="Year", font=dict(size=18)),
@@ -133,35 +68,28 @@ fig.update_layout(
     legend=dict(font=dict(size=14)),
 )
 
-pio.write_json(fig, OUTPUT_DIR+'stacked_bar_plot.json')
-
+pio.write_json(fig, OUTPUT_DIR+'line_plot_gpt4o.json')
 
 fig.show(renderer="browser")
 
 # %%
-# %%
-# Create scatter plots for each year from 2013 to 2020
-import statsmodels.formula.api as sm
-import numpy as np 
-
+# Create scatter plots for each year from 2013 to 2020 for gpt-4o
 for year in range(2013, 2025):
     # SQL query to get bitter_lesson_score and citation count for the specific year
     query = f"""
     SELECT 
-        bls.generality_of_approach_score + 
-        bls.reliance_on_human_knowledge_score + 
+        bls.learning_over_engineering_score + 
+        bls.search_over_heuristics_score + 
         bls.scalability_with_computation_score + 
-        bls.leveraging_search_and_learning_score + 
-        bls.complexity_handling_score + 
-        bls.adaptability_and_generalization_score + 
-        bls.autonomy_and_discovery_score AS bitter_lesson_score,
+        bls.generality_over_specificity_score + 
+        bls.favoring_fundamental_principles_score AS bitter_lesson_score,
         ss.citationCount,
         p.title,
         p.authors
     FROM papers AS p
-    JOIN bitter_lesson_scores AS bls ON p.id = bls.paper_id
+    JOIN bitter_lesson_scores_v2 AS bls ON p.id = bls.paper_id
     JOIN semantic_scholar_data AS ss ON p.id = ss.paper_id
-    WHERE p.year = {year}
+    WHERE p.year = {year} AND bls.model = 'gpt-4o'
     ORDER BY bitter_lesson_score;
     """
 
@@ -181,12 +109,12 @@ for year in range(2013, 2025):
         x="bitter_lesson_score", 
         y="citationCount", 
         log_y=True,  # Set y-axis to logarithmic scale
-        title=f"Bitter Lesson Score vs. Citations (CVPR {year})",
+        title=f"Bitter Lesson Score vs. Citations (CVPR {year}, gpt-4o)",
         hover_data=["title", "authors"],  # Show title and authors on hover
         template="simple_white"
     )
-    
-        # Fit OLS regression on the log of citationCount
+
+    # Fit OLS regression on the log of citationCount
     results = sm.ols('log_citationCount ~ bitter_lesson_score', data=df).fit()
 
     # Get p-value of the bitter_lesson_score coefficient
@@ -225,9 +153,8 @@ for year in range(2013, 2025):
     )
 
     # Save the plot as a JSON file
-    pio.write_json(fig, OUTPUT_DIR + f'scatter_plot_{year}.json')
+    pio.write_json(fig, OUTPUT_DIR + f'scatter_plot_{year}_gpt4o.json')
 
     # Display the plot (optional)
     fig.show(renderer="browser")
-
 # %%
