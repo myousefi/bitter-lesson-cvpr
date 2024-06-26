@@ -15,7 +15,7 @@ from bitter_lesson_cvpr.llm_evaluation.prompt_v2 import (
 )
 
 DATABASE_PATH = "dbs/cvpr_papers.db"
-SAMPLES_PER_YEAR = 1
+SAMPLES_PER_YEAR = 100
 
 
 def create_scores_table_if_not_exists():
