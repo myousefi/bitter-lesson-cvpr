@@ -17,7 +17,7 @@ load_dotenv()
 OUTPUT_DIR = os.getenv("OUTPUT_DIR")
 
 # Connect to the database
-conn = sqlite3.connect('./dbs/cvpr_papers.db')
+conn = sqlite3.connect('../dbs/cvpr_papers.db')
 
 # %%
 # SQL query to calculate average scores for each category per year for gpt-4o
@@ -74,7 +74,7 @@ fig.show(renderer="browser")
 
 # %%
 # Create scatter plots for each year from 2013 to 2020 for gpt-4o
-for year in range(2013, 2025):
+for year in range(2005, 2025):
     # SQL query to get bitter_lesson_score and citation count for the specific year
     query = f"""
     SELECT 
