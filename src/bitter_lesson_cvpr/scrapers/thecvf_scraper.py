@@ -56,20 +56,7 @@ async def extract_paper_info(session, paper_url, retries=3, delay=1):
             else:
                 print(f"Failed to fetch {paper_url} after {retries} attempts.")
                 return None  # Return None to indicate failure
-
-async def write_to_json(queue, year):
-    """Writes paper data from the queue to the JSON file."""
-    with open(f'data/thecvf/cvpr/{year}_papers.json', 'a') as f:
-        while True:
-            paper_info = await queue.get()
-            if paper_info is None:  # Sentinel value to stop the writer
-                break
-            json.dump(paper_info, f, indent=4)
-            f.write('\n')
-            queue.task_done()
-
-
-def create_database(db_name="cvpr_papers.db"):
+def create_database(db_name="dbs/cvpr_papers.db"):
     """Creates a SQLite database with the specified name and table structure."""
     conn = sqlite3.connect(db_name)
     cursor = conn.cursor()
