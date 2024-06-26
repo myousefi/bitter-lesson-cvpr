@@ -15,7 +15,7 @@ S2_API_KEY = os.getenv("S2_API_KEY")
 url = "https://api.semanticscholar.org/graph/v1/paper/search"
 
 # Database connection
-conn = sqlite3.connect('/dbs/cvpr_papers.db')
+conn = sqlite3.connect('dbs/cvpr_papers.db')
 cursor = conn.cursor()
 
 # Create the new table if it doesn't exist
@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS semantic_scholar_data (
 cursor.execute("""
 SELECT id, title, year
 FROM papers
-WHERE id IN (SELECT DISTINCT paper_id FROM bitter_lesson_scores)
+WHERE year < 2013
 """)
 papers = cursor.fetchall()
 
