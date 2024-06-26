@@ -15,7 +15,7 @@ from bitter_lesson_cvpr.llm_evaluation.prompt_v2 import (
 )
 
 DATABASE_PATH = "dbs/cvpr_papers.db"
-SAMPLES_PER_YEAR = 100
+SAMPLES_PER_YEAR = 50
 
 
 def create_scores_table_if_not_exists():
@@ -48,8 +48,8 @@ def get_random_papers(year: int, limit: int) -> List[Tuple[int, str, str]]:
             SELECT id, title, abstract 
             FROM papers 
             WHERE year = ?
-            AND id IN (SELECT paper_id FROM bitter_lesson_scores)
-            AND id NOT IN (SELECT paper_id FROM bitter_lesson_scores_v2 WHERE model = "claude-3-5-sonnet-20240620")
+            AND abstract IS NOT NULL
+            AND id NOT IN (SELECT paper_id FROM bitter_lesson_scores_v2 WHERE model = "gpt-4o")
             ORDER BY RANDOM()
             LIMIT ?
             """,
@@ -63,10 +63,10 @@ def evaluate_and_store_scores(papers: List[Tuple[int, str, str]]):
     with sqlite3.connect(DATABASE_PATH) as conn:
         cursor = conn.cursor()
 
-        # model = "gpt-4o"
-        # with OpenaiChatModel(model, temperature=0):
-        model = "claude-3-5-sonnet-20240620"
-        with AnthropicChatModel(model=model, temperature=0, api_key=os.getenv("MAGENTIC_ANTHROPIC_API_KEY")):
+        model = "gpt-4o"
+        with OpenaiChatModel(model, temperature=0):
+        # model = "claude-3-5-sonnet-20240620"
+        # with AnthropicChatModel(model=model, temperature=0, api_key=os.getenv("MAGENTIC_ANTHROPIC_API_KEY")):
             for paper_id, title, abstract in papers:
                 while True:
                     try:
@@ -76,7 +76,7 @@ def evaluate_and_store_scores(papers: List[Tuple[int, str, str]]):
                         break
                     except RateLimitError as e:
                         print(f"Rate limit error: {e}")
-                        time.sleep(1)
+                        time.sleep(0.1)
                     except Exception as e:
                         print(f"Error: {e}")
                         break
@@ -116,7 +116,7 @@ def main():
         cursor.execute("SELECT DISTINCT year FROM papers")
         years = [row[0] for row in cursor.fetchall()]
 
-    for year in years:
+    for year in range(2004, 2025):
         print(f"Processing year {year}...")
         random_papers = get_random_papers(year, SAMPLES_PER_YEAR)
         evaluate_and_store_scores(random_papers)
