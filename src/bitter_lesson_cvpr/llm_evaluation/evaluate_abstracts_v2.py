@@ -15,7 +15,7 @@ from bitter_lesson_cvpr.llm_evaluation.prompt_v2 import (
 )
 
 DATABASE_PATH = "dbs/cvpr_papers.db"
-SAMPLES_PER_YEAR = 50
+SAMPLES_PER_YEAR = 200 - 22
 
 
 def create_scores_table_if_not_exists():
@@ -116,7 +116,7 @@ def main():
         cursor.execute("SELECT DISTINCT year FROM papers")
         years = [row[0] for row in cursor.fetchall()]
 
-    for year in range(2004, 2025):
+    for year in range(2011, 2012):
         print(f"Processing year {year}...")
         random_papers = get_random_papers(year, SAMPLES_PER_YEAR)
         evaluate_and_store_scores(random_papers)

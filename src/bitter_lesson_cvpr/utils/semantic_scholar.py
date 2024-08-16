@@ -1,3 +1,4 @@
+from calendar import c
 import requests
 from dotenv import load_dotenv
 import os
@@ -41,7 +42,7 @@ CREATE TABLE IF NOT EXISTS semantic_scholar_data (
 cursor.execute("""
 SELECT id, title, year
 FROM papers
-WHERE year < 2013
+WHERE Abstract IS NULL
 """)
 papers = cursor.fetchall()
 
@@ -51,7 +52,7 @@ for paper_id, title, year in tqdm(papers, desc="Fetching Semantic Scholar data")
         'query': title,
         'limit': 1,
         'year': f'{year-2}-',  # Search from the paper's year onwards
-        'fields': 'title,externalIds,citationCount,influentialCitationCount,venue,publicationVenue,publicationDate'
+        'fields': 'title,externalIds,citationCount,influentialCitationCount,venue,publicationVenue,publicationDate,abstract'
     }
 
     headers = {
@@ -82,6 +83,7 @@ for paper_id, title, year in tqdm(papers, desc="Fetching Semantic Scholar data")
         citation_count = data.get('citationCount')
         influential_citation_count = data.get('influentialCitationCount')
         publication_date = data.get('publicationDate')
+        abstract = data.get('abstract')
 
         # Insert data into the database
         cursor.execute("""
@@ -93,9 +95,28 @@ for paper_id, title, year in tqdm(papers, desc="Fetching Semantic Scholar data")
         """, (paper_id, paperId, dblp, mag, doi, corpus_id, publication_venue,
               title, venue, citation_count, influential_citation_count, publication_date))
 
+        if abstract:
+            cursor.execute("""
+            UPDATE papers
+            SET abstract = ?
+            WHERE id = ?
+            """, (abstract, paper_id))
+        else:
+            cursor.execute("""
+            UPDATE papers
+            SET abstract = ?
+            WHERE id = ?
+            """, ("NOT AVAILABLE", paper_id))
+
         conn.commit()
     else:
         print(f"Error fetching data for paper: {title} (ID: {paper_id})")
+
+        cursor.execute("""
+            UPDATE papers
+            SET abstract = ?
+            WHERE id = ?
+            """, ("NOT AVAILABLE", paper_id))
 
     time.sleep(0.5)  # Add a 0.5-second delay between requests
 

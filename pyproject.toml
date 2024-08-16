@@ -23,6 +23,7 @@ dependencies = [
     "statsmodels>=0.14.2",
     "bibtexparser>=1.4.1",
     "anthropic==0.28.1",
+    "seaborn>=0.13.2",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"
