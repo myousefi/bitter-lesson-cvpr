@@ -95,6 +95,8 @@ ipython==8.25.0
     # via ipykernel
 jedi==0.19.1
     # via ipython
+jinja2==3.1.4
+    # via bitter-lesson-cvpr
 jiter==0.4.2
     # via anthropic
 joblib==1.4.2
@@ -116,6 +118,8 @@ kiwisolver==1.4.5
 magentic==0.26.0
     # via bitter-lesson-cvpr
     # via magentic
+markupsafe==2.1.5
+    # via jinja2
 matplotlib==3.9.0
     # via pingouin
     # via seaborn
