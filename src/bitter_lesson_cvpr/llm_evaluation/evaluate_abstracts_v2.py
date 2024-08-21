@@ -39,21 +39,26 @@ def create_scores_table_if_not_exists():
         )
 
 
-def get_random_papers(year: int, limit: int) -> List[Tuple[int, str, str]]:
-    """Fetches random papers from the database for a specific year."""
+def get_scored_papers(year: int) -> List[Tuple[int, str, str]]:
+    """Fetches all papers from the database for a specific year that have a gpt-4o score."""
     with sqlite3.connect(DATABASE_PATH) as conn:
         cursor = conn.cursor()
         cursor.execute(
             """
-            SELECT id, title, abstract 
-            FROM papers 
-            WHERE year = ?
-            AND abstract IS NOT NULL
-            AND id NOT IN (SELECT paper_id FROM bitter_lesson_scores_v2 WHERE model = "gpt-4o")
-            ORDER BY RANDOM()
-            LIMIT ?
+            SELECT p.id, p.title, p.abstract 
+            FROM papers p
+            INNER JOIN bitter_lesson_scores_v2 b ON p.id = b.paper_id
+            WHERE p.year = ?
+            AND p.abstract IS NOT NULL
+            AND b.model = 'gpt-4o'
+            AND NOT EXISTS (
+                SELECT 1
+                FROM bitter_lesson_scores_v2 b2
+                WHERE b2.paper_id = p.id
+                AND b2.model = 'claude-3-5-sonnet-20240620'
+            )
             """,
-            (year, limit),
+            (year,),
         )
         return cursor.fetchall()
 
@@ -63,10 +68,10 @@ def evaluate_and_store_scores(papers: List[Tuple[int, str, str]]):
     with sqlite3.connect(DATABASE_PATH) as conn:
         cursor = conn.cursor()
 
-        model = "gpt-4o"
-        with OpenaiChatModel(model, temperature=0):
-        # model = "claude-3-5-sonnet-20240620"
-        # with AnthropicChatModel(model=model, temperature=0, api_key=os.getenv("MAGENTIC_ANTHROPIC_API_KEY")):
+        # model = "gpt-4o-mini-2024-07-18"
+        # with OpenaiChatModel(model, temperature=0):
+        model = "claude-3-5-sonnet-20240620"
+        with AnthropicChatModel(model=model, temperature=0, api_key=os.getenv("MAGENTIC_ANTHROPIC_API_KEY")):
             for paper_id, title, abstract in papers:
                 while True:
                     try:
@@ -111,14 +116,14 @@ def main():
     """Main function to orchestrate the evaluation process."""
     create_scores_table_if_not_exists()  # Create the table if it doesn't exist
 
-    with sqlite3.connect(DATABASE_PATH) as conn:
-        cursor = conn.cursor()
-        cursor.execute("SELECT DISTINCT year FROM papers")
-        years = [row[0] for row in cursor.fetchall()]
+    # with sqlite3.connect(DATABASE_PATH) as conn:
+    #     cursor = conn.cursor()
+    #     cursor.execute("SELECT DISTINCT year FROM papers")
+    #     years = [row[0] for row in cursor.fetchall()]
 
-    for year in range(2011, 2012):
+    for year in range(2004, 2025):
         print(f"Processing year {year}...")
-        random_papers = get_random_papers(year, SAMPLES_PER_YEAR)
+        random_papers = get_scored_papers(year)
         evaluate_and_store_scores(random_papers)
 
 
