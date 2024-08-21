@@ -107,10 +107,13 @@ jupyter-core==5.7.2
     # via ipykernel
     # via jupyter-client
     # via nbformat
+kaleido==0.2.1
+    # via bitter-lesson-cvpr
 kiwisolver==1.4.5
     # via matplotlib
 magentic==0.26.0
     # via bitter-lesson-cvpr
+    # via magentic
 matplotlib==3.9.0
     # via seaborn
 matplotlib-inline==0.1.7

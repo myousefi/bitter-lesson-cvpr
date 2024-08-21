@@ -24,6 +24,7 @@ dependencies = [
     "bibtexparser>=1.4.1",
     "anthropic==0.28.1",
     "seaborn>=0.13.2",
+    "kaleido>=0.2.1",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"

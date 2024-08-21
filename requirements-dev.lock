@@ -107,10 +107,13 @@ jupyter-core==5.7.2
     # via ipykernel
     # via jupyter-client
     # via nbformat
+kaleido==0.2.1
+    # via bitter-lesson-cvpr
 kiwisolver==1.4.5
     # via matplotlib
 magentic==0.26.0
     # via bitter-lesson-cvpr
+    # via magentic
 matplotlib==3.9.0
     # via seaborn
 matplotlib-inline==0.1.7
@@ -155,7 +158,6 @@ pexpect==4.9.0
     # via ipython
 pillow==10.3.0
     # via matplotlib
-pip==24.0
 platformdirs==4.2.2
     # via jupyter-core
 plotly==5.22.0
@@ -280,3 +282,4 @@ wsproto==1.2.0
     # via trio-websocket
 yarl==1.9.4
     # via aiohttp
+pip==24.0
