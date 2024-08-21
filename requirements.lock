@@ -115,6 +115,8 @@ kaleido==0.2.1
     # via bitter-lesson-cvpr
 kiwisolver==1.4.5
     # via matplotlib
+krippendorff==0.7.0
+    # via bitter-lesson-cvpr
 magentic==0.26.0
     # via bitter-lesson-cvpr
     # via magentic
@@ -136,6 +138,7 @@ nest-asyncio==1.6.0
     # via semanticscholar
 numpy==2.0.0
     # via contourpy
+    # via krippendorff
     # via matplotlib
     # via pandas
     # via patsy
