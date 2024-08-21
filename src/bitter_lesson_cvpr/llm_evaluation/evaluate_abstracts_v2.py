@@ -15,7 +15,7 @@ from bitter_lesson_cvpr.llm_evaluation.prompt_v2 import (
 )
 
 DATABASE_PATH = "dbs/cvpr_papers.db"
-SAMPLES_PER_YEAR = 100
+SAMPLES_PER_YEAR = 200 - 22
 
 
 def create_scores_table_if_not_exists():
@@ -39,21 +39,26 @@ def create_scores_table_if_not_exists():
         )
 
 
-def get_random_papers(year: int, limit: int) -> List[Tuple[int, str, str]]:
-    """Fetches random papers from the database for a specific year."""
+def get_scored_papers(year: int) -> List[Tuple[int, str, str]]:
+    """Fetches all papers from the database for a specific year that have a gpt-4o score."""
     with sqlite3.connect(DATABASE_PATH) as conn:
         cursor = conn.cursor()
         cursor.execute(
             """
-            SELECT id, title, abstract 
-            FROM papers 
-            WHERE year = ?
-            AND id IN (SELECT paper_id FROM bitter_lesson_scores)
-            AND id NOT IN (SELECT paper_id FROM bitter_lesson_scores_v2 WHERE model = "claude-3-5-sonnet-20240620")
-            ORDER BY RANDOM()
-            LIMIT ?
+            SELECT p.id, p.title, p.abstract 
+            FROM papers p
+            INNER JOIN bitter_lesson_scores_v2 b ON p.id = b.paper_id
+            WHERE p.year = ?
+            AND p.abstract IS NOT NULL
+            AND b.model = 'gpt-4o'
+            AND NOT EXISTS (
+                SELECT 1
+                FROM bitter_lesson_scores_v2 b2
+                WHERE b2.paper_id = p.id
+                AND b2.model = 'claude-3-5-sonnet-20240620'
+            )
             """,
-            (year, limit),
+            (year,),
         )
         return cursor.fetchall()
 
@@ -63,7 +68,7 @@ def evaluate_and_store_scores(papers: List[Tuple[int, str, str]]):
     with sqlite3.connect(DATABASE_PATH) as conn:
         cursor = conn.cursor()
 
-        # model = "gpt-4o"
+        # model = "gpt-4o-mini-2024-07-18"
         # with OpenaiChatModel(model, temperature=0):
         model = "claude-3-5-sonnet-20240620"
         with AnthropicChatModel(model=model, temperature=0, api_key=os.getenv("MAGENTIC_ANTHROPIC_API_KEY")):
@@ -76,7 +81,7 @@ def evaluate_and_store_scores(papers: List[Tuple[int, str, str]]):
                         break
                     except RateLimitError as e:
                         print(f"Rate limit error: {e}")
-                        time.sleep(1)
+                        time.sleep(0.1)
                     except Exception as e:
                         print(f"Error: {e}")
                         break
@@ -111,14 +116,14 @@ def main():
     """Main function to orchestrate the evaluation process."""
     create_scores_table_if_not_exists()  # Create the table if it doesn't exist
 
-    with sqlite3.connect(DATABASE_PATH) as conn:
-        cursor = conn.cursor()
-        cursor.execute("SELECT DISTINCT year FROM papers")
-        years = [row[0] for row in cursor.fetchall()]
+    # with sqlite3.connect(DATABASE_PATH) as conn:
+    #     cursor = conn.cursor()
+    #     cursor.execute("SELECT DISTINCT year FROM papers")
+    #     years = [row[0] for row in cursor.fetchall()]
 
-    for year in years:
+    for year in range(2004, 2025):
         print(f"Processing year {year}...")
-        random_papers = get_random_papers(year, SAMPLES_PER_YEAR)
+        random_papers = get_scored_papers(year)
         evaluate_and_store_scores(random_papers)
 
 

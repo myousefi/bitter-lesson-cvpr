@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-OUTPUT_DIR = os.getenv("OUTPUT_DIR")
+OUTPUT_DIR = "/Users/moji/Library/CloudStorage/Dropbox-Personal/Apps/Overleaf/cvpr-bitter-lesson/cvpr-bitter-lesson-nlp4science/figs/"
 
 # Connect to the database
 conn = sqlite3.connect('../dbs/cvpr_papers.db')
@@ -51,10 +51,11 @@ fig.update_layout(
 fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='lightgray')
 
 # Show the plot
-fig.show()
+fig.show(renderer="browser")
 
-# Save the plot
-pio.write_json(fig, f"{OUTPUT_DIR}/papers_with_bitter_lesson_scores_by_year.json")
+
+# save the plot as svg for use in latex
+fig.write_image(f"{OUTPUT_DIR}/papers_with_bitter_lesson_scores_by_year.svg")
 
 
 # %%
@@ -69,7 +70,7 @@ SELECT
     AVG(bls.favoring_fundamental_principles_score) AS avg_favoring_fundamental_principles_score
 FROM papers AS p
 JOIN bitter_lesson_scores_v2 AS bls ON p.id = bls.paper_id
-WHERE bls.model = 'gpt-4o'
+WHERE bls.model = 'gpt-4o' OR bls.model = 'gpt-4o-mini-2024-07-18'
 GROUP BY p.year
 ORDER BY p.year;
 """
@@ -94,27 +95,28 @@ for column in df.columns[1:]:  # Skip the 'year' column
 
 # Add vertical bars with annotations for significant papers
 significant_papers = {
-    2005: "Histograms of Oriented Gradients for Human Detection by Navneet Dalal et al.",
-    2006: "Photo Tourism: Exploring Photo Collections in 3D by Noah Snavely et al.",
-    2009: "ImageNet: A Large-Scale Hierarchical Image Database by Jia Deng et al.",
-    2012: "ImageNet Classification with Deep Convolutional Neural Networks (AlexNet) by Alex Krizhevsky et al.",
-    2014: "Very Deep Convolutional Networks for Large-Scale Image Recognition (VGGNet) by Karen Simonyan et al.",
-    2014: "Generative Adversarial Networks (GANs) by Ian Goodfellow et al.",
-    2015: "You Only Look Once (YOLO): Unified, Real-Time Object Detection by Joseph Redmon et al.",
-    2015: "Deep Residual Learning for Image Recognition (ResNet) by Kaiming He et al.",
-    2017: "Attention Is All You Need (Transformer) by Ashish Vaswani et al.",
-    2018: "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding by Jacob Devlin et al.",
-    2020: "NeRF: Representing Scenes as Neural Radiance Fields for View Synthesis by Ben Mildenhall et al.",
-    2021: "An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale (ViT) by Alexey Dosovitskiy et al.",
-    2022: "High-Resolution Image Synthesis with Latent Diffusion Models by Robin Rombach et al.",
-    2023: "Segment Anything by Alexander Kirillov et al."
+    2005: "Histograms of Oriented Gradients",
+    2006: "Photo Tourism",
+    2009: "ImageNet Database",
+    2012: "AlexNet",
+    2014: "VGGNet",
+    2014: "GANs",
+    2015: "YOLO",
+    2015: "ResNet",
+    2017: "Transformer",
+    2018: "BERT",
+    2020: "NeRF",
+    2021: "ViT",
+    2022: "Latent Diffusion Models",
+    2023: "Segment Anything"
 }
 
 for year, annotation in significant_papers.items():
     fig.add_vline(x=year, line_width=2, line_dash="dash", line_color="green")
     fig.add_annotation(
         x=year,
-        y=1.05,  # Position the annotation in the middle of the y-axis
+        y=8,  # Position the annotation in the middle of the y-axis
+        yanchor="top",  # Align the text to the bottom of the plot
         text=annotation,
         showarrow=False,
         # No arrow needed
@@ -150,9 +152,117 @@ fig.update_layout(
     ),
 )
 
-pio.write_json(fig, OUTPUT_DIR+'line_plot_gpt4o.json')
+# pio.write_json(fig, OUTPUT_DIR+'line_plot_gpt4o.json')
+
+fig.write_image(OUTPUT_DIR+'line_plot_gpt4o.svg')
+
 
 fig.show(renderer="browser")
+
+# %%
+
+query = """
+SELECT 
+    p.id,
+    gpt.learning_over_engineering_score as gpt_learning,
+    gpt.search_over_heuristics_score as gpt_search,
+    gpt.scalability_with_computation_score as gpt_scalability,
+    gpt.generality_over_specificity_score as gpt_generality,
+    gpt.favoring_fundamental_principles_score as gpt_principles,
+    mini.learning_over_engineering_score as mini_learning,
+    mini.search_over_heuristics_score as mini_search,
+    mini.scalability_with_computation_score as mini_scalability,
+    mini.generality_over_specificity_score as mini_generality,
+    mini.favoring_fundamental_principles_score as mini_principles
+FROM papers p
+JOIN bitter_lesson_scores_v2 gpt ON p.id = gpt.paper_id AND gpt.model = 'gpt-4o'
+JOIN bitter_lesson_scores_v2 mini ON p.id = mini.paper_id AND mini.model = 'gpt-4o-mini-2024-07-18'
+"""
+
+df = pd.read_sql_query(query, conn)
+
+df['gpt_overall'] = df[['gpt_learning', 'gpt_search', 'gpt_scalability', 'gpt_generality', 'gpt_principles']].sum(axis=1)
+df['mini_overall'] = df[['mini_learning', 'mini_search', 'mini_scalability', 'mini_generality', 'mini_principles']].sum(axis=1)
+
+import plotly.graph_objects as go
+from scipy import stats
+
+def create_scatter_plot(df, x_col, y_col, title):
+    fig = go.Figure()
+    
+    fig.add_trace(go.Scatter(
+        x=df[x_col],
+        y=df[y_col],
+        mode='markers',
+        marker=dict(size=8),
+        name='Scores'
+    ))
+    
+    # Calculate R-squared
+    slope, intercept, r_value, p_value, std_err = stats.linregress(df[x_col], df[y_col])
+    r_squared = r_value**2
+    
+    # Add regression line
+    x_range = np.linspace(df[x_col].min(), df[x_col].max(), 100)
+    y_range = slope * x_range + intercept
+    fig.add_trace(go.Scatter(
+        x=x_range,
+        y=y_range,
+        mode='lines',
+        name=f'Regression Line (R² = {r_squared:.3f})'
+    ))
+    
+    fig.update_layout(
+        title=title,
+        xaxis_title=f'GPT-4o Scores',
+        yaxis_title=f'GPT-4o Mini Scores',
+        legend=dict(x=0.02, y=0.98),
+        width=800,
+        height=600
+    )
+    
+    return fig, r_squared
+
+dimensions = [
+    ('learning', 'Learning Over Engineering'),
+    ('search', 'Search Over Heuristics'),
+    ('scalability', 'Scalability with Computation'),
+    ('generality', 'Generality Over Specificity'),
+    ('principles', 'Favoring Fundamental Principles'),
+    ('overall', 'Overall Alignment')
+]
+
+for dim, dim_name in dimensions:
+    fig, r_squared = create_scatter_plot(
+        df, 
+        f'gpt_{dim}', 
+        f'mini_{dim}', 
+        f'{dim_name} Scores: GPT-4o vs GPT-4o Mini'
+    )
+    
+    fig.write_image(f"{OUTPUT_DIR}/{dim}_comparison_scatter.svg")
+    print(f"{dim_name} R-squared: {r_squared:.3f}")
+    
+    fig.show(renderer="browser")
+
+# %%
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Calculate correlation matrix
+correlation_matrix = df[[
+    'gpt_learning', 'gpt_search', 'gpt_scalability', 'gpt_generality', 'gpt_principles',
+    'mini_learning', 'mini_search', 'mini_scalability', 'mini_generality', 'mini_principles'
+]].corr()
+
+# Create heatmap
+plt.figure(figsize=(12, 10))
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', vmin=-1, vmax=1, center=0)
+plt.title('Correlation Heatmap: GPT-4o vs GPT-4o Mini Dimensions')
+plt.tight_layout()
+plt.savefig(f"{OUTPUT_DIR}/correlation_heatmap.svg")
+plt.show()
 
 # %%
 import numpy as np
