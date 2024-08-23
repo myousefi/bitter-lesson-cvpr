@@ -205,6 +205,8 @@ pygments==2.18.0
 pyparsing==3.1.2
     # via bibtexparser
     # via matplotlib
+pyperclip==1.9.0
+    # via bitter-lesson-cvpr
 pysocks==1.7.1
     # via urllib3
 python-dateutil==2.9.0.post0

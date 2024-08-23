@@ -1,10 +1,3 @@
-
-from pydantic import BaseModel, Field
-
-from dotenv import load_dotenv
-
-load_dotenv()
-
 from magentic import prompt
 from pydantic import BaseModel, Field
 
@@ -46,26 +39,3 @@ We want to evalute this abstract in terms of alignment with "The Bitter Lesson".
 def evaluate_bitter_lesson_alignment(
     title: str, abstract: str
 ) -> BitterLessonScores: ...
-
-
-if __name__ == "__main__":
-    title = "Stability Analysis of a Generalized Class of BAM Neural Networks with Mixed Delays"
-    abstract = """
-    In this paper, we shall establish the existence and the uniqueness of the unique equilibrium point of a class of generalized BAM neural networks. We will construct a new and suitable Lyapunov function to derive the sufficient conditions which ensure that the equilibrium point exist and it is globally exponentially stable. A numerical example is given in order to confirm the theoretical developments of this paper.
-    """
-
-    from magentic.chat_model.anthropic_chat_model import AnthropicChatModel
-    from magentic.chat_model.openai_chat_model import OpenaiChatModel
-
-    import os 
-
-    model = "claude-3-5-sonnet-20240620"
-    with AnthropicChatModel(model=model, temperature=0, api_key=os.getenv("MAGENTIC_ANTHROPIC_API_KEY")):
-    # with OpenaiChatModel("gpt-4o", temperature=0):
-        scores = evaluate_bitter_lesson_alignment(title=title, abstract=abstract)
-
-    print(f"Title: {title}")
-    print(f"Abstract: {abstract}")
-    print("\nBitter Lesson Scores:")
-    for field, value in scores:
-        print(f"{field}: {value}")
