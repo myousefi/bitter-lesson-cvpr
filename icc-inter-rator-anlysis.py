@@ -1,5 +1,6 @@
 # %%
 import sqlite3
+import time
 import pandas as pd
 import pingouin as pg
 from pathlib import Path
@@ -154,10 +155,14 @@ for value, label, color in thresholds:
 
 # Save the plot as SVG files for one-column and two-column layouts
 fig.write_image(OUTPUT_DIR/ "figs" / "icc_values_across_dimensions_one_column.svg", width=600, height=450, scale=1)
-fig.write_image(OUTPUT_DIR/ "figs" /"icc_values_across_dimensions_two_column.svg", width=1200, height=900, scale=1)
+fig.write_image(OUTPUT_DIR/ "figs" /"icc_values_across_dimensions_two_column.svg", width=1200, height=900, scale=2)
 
-# Display the plot
 fig.show(renderer="browser")
+
+time.sleep(1)  # Wait for 1 second
+fig.write_image(OUTPUT_DIR / "figs" / "icc_values_across_dimensions_one_column.pdf", 
+                width=600, height=450, scale=4, engine="kaleido")
+# Display the plot
 
 
 # %%
