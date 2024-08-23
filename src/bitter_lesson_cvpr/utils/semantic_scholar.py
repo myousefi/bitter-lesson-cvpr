@@ -39,13 +39,19 @@ CREATE TABLE IF NOT EXISTS semantic_scholar_data (
 """)
 
 # Get papers with bitter_lesson_scores
-cursor.execute("""
-SELECT id, title, year
-FROM papers
-WHERE Abstract IS NULL
-""")
+cursor.execute(
+            """
+            SELECT p.id, p.title, p.year
+            FROM papers p
+            RIGHT JOIN bitter_lesson_scores_v2 b ON p.id = b.paper_id
+            LEFT JOIN semantic_scholar_data s ON p.id = s.paper_id
+            WHERE s.citationCount IS NULL
+            AND b.model = 'gpt-4o'
+            """
+        )
 papers = cursor.fetchall()
 
+print(len(papers))
 for paper_id, title, year in tqdm(papers, desc="Fetching Semantic Scholar data"):
     # Define the query parameters
     query_params = {
@@ -111,6 +117,7 @@ for paper_id, title, year in tqdm(papers, desc="Fetching Semantic Scholar data")
         conn.commit()
     else:
         print(f"Error fetching data for paper: {title} (ID: {paper_id})")
+        print(response.text)
 
         cursor.execute("""
             UPDATE papers
@@ -118,6 +125,6 @@ for paper_id, title, year in tqdm(papers, desc="Fetching Semantic Scholar data")
             WHERE id = ?
             """, ("NOT AVAILABLE", paper_id))
 
-    time.sleep(0.5)  # Add a 0.5-second delay between requests
+    time.sleep(2)  # Add a 0.5-second delay between requests
 
 conn.close()

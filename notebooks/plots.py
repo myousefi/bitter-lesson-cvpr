@@ -1,4 +1,6 @@
 # %%
+from pathlib import Path
+import time
 import bitter_lesson_cvpr
 
 import sqlite3
@@ -14,12 +16,118 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-OUTPUT_DIR = os.getenv("OUTPUT_DIR")
+OUTPUT_DIR = os.getenv("NLP4SCIENCE_OUTPUT_DIR")
+OUTPUT_DIR = Path(OUTPUT_DIR)
 
 # Connect to the database
 conn = sqlite3.connect('../dbs/cvpr_papers.db')
-
 # %%
+# SQL query to count all papers by year
+query = """
+SELECT p.year, COUNT(DISTINCT p.id) as paper_count
+FROM papers AS p
+WHERE p.year > 2004
+GROUP BY p.year
+ORDER BY p.year;
+"""
+
+# Load data into a Pandas DataFrame
+df_all_papers = pd.read_sql_query(query, conn)
+
+# Create the bar plot
+fig = go.Figure(data=[
+    go.Bar(
+        x=df_all_papers['year'], 
+        y=df_all_papers['paper_count'],
+        text=df_all_papers['paper_count'],
+        textposition='auto',
+    )
+])
+
+# Update layout
+fig.update_layout(
+    title=dict(
+        text="Total Number of CVPR Papers by Year",
+        font=dict()
+    ),
+    xaxis_title=dict(text="Year", font=dict()),
+    yaxis_title=dict(text="Number of Papers", font=dict()),
+    xaxis=dict(
+        tickfont=dict(),
+        tickmode='linear',
+        dtick=1,
+        tickangle=45
+    ),
+    yaxis=dict(
+        tickfont=dict(),
+        gridwidth=1,
+        gridcolor="LightGray"
+    ),
+    font=dict(family="Cambria")
+)
+
+# Save the plot as SVG files for one-column and two-column layouts
+fig.write_image(OUTPUT_DIR / "figs" / "total_cvpr_papers_by_year_one_column.svg", width=800, height=450, scale=1)
+fig.write_image(OUTPUT_DIR / "figs" / "total_cvpr_papers_by_year_two_column.svg", width=800, height=450, scale=2)
+
+# Display the plot
+fig.show(renderer="browser")
+
+time.sleep(1)  # Wait for 1 second
+
+fig.write_image(OUTPUT_DIR / "figs" / "total_cvpr_papers_by_year_one_column.pdf",
+                width=1200, height=450, scale=4, engine="kaleido")
+# fig.write_image(OUTPUT_DIR / "figs" / "krippendorff_alpha_across_dimensions_one_column.pdf", 
+                # width=600, height=450, scale=4, engine="kaleido")
+# %%
+import plotly.graph_objects as go
+
+# SQL query to get the number of papers for each year and model
+query = """
+SELECT p.year, bls.model, COUNT(DISTINCT p.id) as paper_count
+FROM papers AS p
+JOIN bitter_lesson_scores_v2 AS bls ON p.id = bls.paper_id
+GROUP BY p.year, bls.model
+ORDER BY p.year, bls.model;
+"""
+
+# Load data into a Pandas DataFrame
+df_paper_count = pd.read_sql_query(query, conn)
+
+# Get unique years and models
+years = df_paper_count['year'].unique()
+models = df_paper_count['model'].unique()
+
+# Create the grouped bar plot
+fig = go.Figure()
+
+for model in models:
+    model_data = df_paper_count[df_paper_count['model'] == model]
+    fig.add_trace(go.Bar(
+        x=model_data['year'],
+        y=model_data['paper_count'],
+        name=model,
+        text=model_data['paper_count'],
+        textposition='auto'
+    ))
+
+# Update layout for better readability
+fig.update_layout(
+    title='Number of Papers with Bitter Lesson Scores by Year and Model',
+    xaxis_title='Year',
+    yaxis_title='Number of Papers',
+    barmode='group',
+    bargap=0.2,
+    bargroupgap=0.1,
+    plot_bgcolor='white',
+    xaxis=dict(tickmode='linear', dtick=1)
+)
+
+# Add gridlines
+fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='lightgray')
+
+# Show the plot
+fig.show(renderer="browser")
 # %%
 # SQL query to count papers with bitter_lesson_scores_v2 by year
 query = """
@@ -51,7 +159,7 @@ fig.update_layout(
 fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='lightgray')
 
 # Show the plot
-fig.show()
+fig.show(renderer="browser")
 
 # Save the plot
 pio.write_json(fig, f"{OUTPUT_DIR}/papers_with_bitter_lesson_scores_by_year.json")
@@ -127,7 +235,7 @@ for year, annotation in significant_papers.items():
 # Update layout 
 fig.update_layout(
     title=dict(
-        text="Average Bitter Lesson Scores Over Time (gpt-4o)",
+        text="Average Bitter Lesson Scores Over Time",
         font=dict(size=24)
     ),
     xaxis_title=dict(text="Year", font=dict(size=18)),
@@ -150,9 +258,11 @@ fig.update_layout(
     ),
 )
 
-pio.write_json(fig, OUTPUT_DIR+'line_plot_gpt4o.json')
+# pio.write_json(fig, OUTPUT_DIR+'line_plot_gpt4o.json')
 
 fig.show(renderer="browser")
+
+fig.write_image(OUTPUT_DIR / "figs" / "average_bitter_lesson_scores_over_time.pdf", width=1200, height=450, scale=4, engine="kaleido")
 
 # %%
 import numpy as np

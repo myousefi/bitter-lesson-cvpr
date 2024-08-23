@@ -1,4 +1,5 @@
 # %%
+from pathlib import Path
 import bitter_lesson_cvpr
 
 import sqlite3
@@ -14,7 +15,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-OUTPUT_DIR = "/Users/moji/Library/CloudStorage/Dropbox-Personal/Apps/Overleaf/cvpr-bitter-lesson/cvpr-bitter-lesson-nlp4science/figs/"
+OUTPUT_DIR = os.getenv("NLP4SCIENCE_OUTPUT_DIR")
+OUTPUT_DIR = Path(OUTPUT_DIR)
 
 # Connect to the database
 conn = sqlite3.connect('../dbs/cvpr_papers.db')
@@ -70,7 +72,7 @@ SELECT
     AVG(bls.favoring_fundamental_principles_score) AS avg_favoring_fundamental_principles_score
 FROM papers AS p
 JOIN bitter_lesson_scores_v2 AS bls ON p.id = bls.paper_id
-WHERE bls.model = 'gpt-4o' OR bls.model = 'gpt-4o-mini-2024-07-18'
+WHERE bls.model = 'gpt-4o' OR bls.model = 'gpt-4o-mini-2024-07-18' OR bls.model = 'claude-3-5-sonnet-20240620'
 GROUP BY p.year
 ORDER BY p.year;
 """
@@ -129,7 +131,7 @@ for year, annotation in significant_papers.items():
 # Update layout 
 fig.update_layout(
     title=dict(
-        text="Average Bitter Lesson Scores Over Time (gpt-4o)",
+        text="Average Bitter Lesson Scores Over Time",
         font=dict(size=24)
     ),
     xaxis_title=dict(text="Year", font=dict(size=18)),
@@ -154,10 +156,14 @@ fig.update_layout(
 
 # pio.write_json(fig, OUTPUT_DIR+'line_plot_gpt4o.json')
 
-fig.write_image(OUTPUT_DIR+'line_plot_gpt4o.svg')
-
-
 fig.show(renderer="browser")
+
+fig.write_image(OUTPUT_DIR / "figs" / 'line_plot_gpt4o.pdf', width=1200, height=600, scale=4, engine='kaleido')
+
+# fig.write_image(OUTPUT_DIR+'line_plot_gpt4o.svg')
+
+# %%
+
 
 # %%
 

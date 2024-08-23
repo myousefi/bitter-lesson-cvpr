@@ -1,4 +1,5 @@
 # %%
+import time
 import bitter_lesson_cvpr
 
 import sqlite3
@@ -36,28 +37,64 @@ df = pd.read_sql_query(query, conn)
 
 df = df.dropna()
 # %%
-# Data Preparation and Exploration
 def citation_distribution_analysis(df):
     # Histogram of citation counts
     fig = go.Figure(data=[go.Histogram(x=df['citationCount'])])
-    fig.update_layout(title='Distribution of Citation Counts',
-                      xaxis_title='Citation Count',
-                      yaxis_title='Frequency')
-    fig.write_image(OUTPUT_DIR / 'figs' / 'citation_distribution.svg')
 
     skewness = stats.skew(df['citationCount'])
     kurtosis = stats.kurtosis(df['citationCount'])
     _, p_value = stats.shapiro(df['citationCount'])
+    mean = np.mean(df['citationCount'])
+    std = np.std(df['citationCount'])
 
-    print(f"Skewness: {skewness}")
-    print(f"Kurtosis: {kurtosis}")
-    print(f"Shapiro-Wilk test p-value: {p_value}")
+    fig.update_layout(title='Distribution of Citation Counts',
+                      xaxis_title='Citation Count',
+                      yaxis_title='Frequency',
+                      annotations=[
+                          dict(x=0.95, y=0.95, xref='paper', yref='paper', 
+                               text=f"Mean: {mean:.2f}<br>Standard Deviation: {std:.2f}<br>Skewness: {skewness:.2f}<br>Kurtosis: {kurtosis:.2f}<br>Shapiro-Wilk: {p_value:.2f}",
+                               showarrow=False, font=dict(size=12), align='left', bordercolor='black', borderwidth=1, borderpad=4, bgcolor='white')
+                      ])
 
+    fig.show(renderer="browser")
+    fig.write_image(OUTPUT_DIR / 'figs' / 'citation_distribution.svg')
+    time.sleep(1)
+    fig.write_image(OUTPUT_DIR / 'figs' / 'citation_distribution.pdf', width=600, height=450, scale=4, engine='kaleido')
+
+
+    # Histogram of log-transformed citation counts
     df['log_citations'] = np.log1p(df['citationCount'])
+
+    log_fig = go.Figure(data=[go.Histogram(x=df['log_citations'])])
+
+    log_skewness = stats.skew(df['log_citations'])
+    log_kurtosis = stats.kurtosis(df['log_citations'])
+    _, log_p_value = stats.shapiro(df['log_citations'])
+    log_mean = np.mean(df['log_citations'])
+    log_std = np.std(df['log_citations'])
+
+    log_fig.update_layout(title='Distribution of Log-Transformed Citation Counts',
+                          xaxis_title='Log Citation Count',
+                          yaxis_title='Frequency',
+                          annotations=[
+                              dict(x=0.95, y=0.95, xref='paper', yref='paper', 
+                                   text=f"Mean: {log_mean:.2f}<br>Standard Deviation: {log_std:.2f}<br>Skewness: {log_skewness:.2f}<br>Kurtosis: {log_kurtosis:.2f}<br>Shapiro-Wilk: {log_p_value:.2f}",
+                                   showarrow=False, font=dict(size=12), align='left', bordercolor='black', borderwidth=1, borderpad=4, bgcolor='white')
+                          ])
+
+    log_fig.show(renderer="browser")
+
+    time.sleep(1)
+    log_fig.write_image(OUTPUT_DIR / 'figs' / 'log_citation_distribution.svg')
+    log_fig.write_image(OUTPUT_DIR / 'figs' / 'log_citation_distribution.pdf', width=600, height=450, scale=4, engine='kaleido')
+
+
     return df
 
 df = citation_distribution_analysis(df)
 
+
+# %%
 # Correlation Analysis
 def correlation_analysis(df):
     corr_matrix = df[['log_citations', 'learning_over_engineering_score', 'search_over_heuristics_score',
@@ -180,6 +217,7 @@ def model_diagnostics(model, X, y):
                       xaxis_title='Fitted values',
                       yaxis_title='Residuals')
     fig.write_image(OUTPUT_DIR / 'figs' / 'residuals_vs_fitted.svg')
+    fig.show(renderer="browser")
 
     # Q-Q plot
     qq = stats.probplot(residuals)
@@ -188,6 +226,7 @@ def model_diagnostics(model, X, y):
     fig.add_trace(go.Scatter(x=qq[0][0], y=qq[1][0] * qq[0][0] + qq[1][1], mode='lines'))
     fig.update_layout(title='Q-Q plot', xaxis_title='Theoretical Quantiles', yaxis_title='Sample Quantiles')
     fig.write_image(OUTPUT_DIR / 'figs' / 'qq_plot.svg')
+    fig.show(renderer="browser")
 
     # Cook's distance
     influence = model.get_influence()
@@ -195,6 +234,7 @@ def model_diagnostics(model, X, y):
     fig = go.Figure(data=[go.Scatter(y=c, mode='markers')])
     fig.update_layout(title="Cook's distance", xaxis_title='Observation', yaxis_title="Cook's distance")
     fig.write_image(OUTPUT_DIR / 'figs' / 'cooks_distance.svg')
+    fig.show(renderer="browser")
 
 X = df[['learning_over_engineering_score', 'search_over_heuristics_score',
         'scalability_with_computation_score', 'generality_over_specificity_score',
@@ -246,3 +286,171 @@ def results_to_latex(model):
 results_to_latex(model_ols)
 
 print("Analysis complete. Check the output directory for figures and tables.")
+# %%
+# Load data
+# Load data
+query = """
+SELECT
+    p.id, p.year, 
+    AVG(bls.learning_over_engineering_score) AS learning_over_engineering_score,
+    AVG(bls.search_over_heuristics_score) AS search_over_heuristics_score,
+    AVG(bls.scalability_with_computation_score) AS scalability_with_computation_score,
+    AVG(bls.generality_over_specificity_score) AS generality_over_specificity_score,
+    AVG(bls.favoring_fundamental_principles_score) AS favoring_fundamental_principles_score,
+    ss.citationCount
+FROM papers p
+JOIN bitter_lesson_scores_v2 bls ON p.id = bls.paper_id
+JOIN semantic_scholar_data ss ON p.id = ss.paper_id
+WHERE bls.model IN ('claude-3-5-sonnet-20240620', 'gpt-4o', 'gpt-4o-mini-2024-07-18')
+GROUP BY p.id, p.year, ss.citationCount
+"""
+df = pd.read_sql_query(query, conn)
+
+# df = df.dropna()
+
+
+# Stratified Regression Analysis
+years = df['year'].unique()
+years = sorted(years)
+for year in years:
+    print(f"Regression Analysis for Year {year}")
+    
+    year_df = df[df['year'] == year]
+    
+    X = year_df[['learning_over_engineering_score', 'search_over_heuristics_score',
+                    'scalability_with_computation_score', 'generality_over_specificity_score',
+                    'favoring_fundamental_principles_score']]
+    y = np.log1p(year_df['citationCount'])
+    
+    X_with_const = sm.add_constant(X)
+    model = sm.OLS(y, X_with_const).fit()
+    
+    print(model.summary())
+    print("\n")
+
+# %%
+def create_regression_table(years, models):
+    table_data = []
+    for year, model in zip(years, models):
+        r_squared = model.rsquared
+        adj_r_squared = model.rsquared_adj
+        f_statistic = model.fvalue
+        prob_f = model.f_pvalue
+        n_obs = model.nobs
+        
+        coefficients = model.params
+        p_values = model.pvalues
+        
+        def format_coef(coef, p_value):
+            stars = ''
+            if p_value <= 0.05:
+                stars = '**'
+            elif p_value <= 0.1:
+                stars = '*'
+            return f"{coef:.3f}{stars}"
+        
+        row = [
+            year, r_squared, adj_r_squared, f_statistic, prob_f, n_obs,
+            format_coef(coefficients['learning_over_engineering_score'], p_values['learning_over_engineering_score']),
+            format_coef(coefficients['search_over_heuristics_score'], p_values['search_over_heuristics_score']),
+            format_coef(coefficients['scalability_with_computation_score'], p_values['scalability_with_computation_score']),
+            format_coef(coefficients['generality_over_specificity_score'], p_values['generality_over_specificity_score']),
+            format_coef(coefficients['favoring_fundamental_principles_score'], p_values['favoring_fundamental_principles_score'])
+        ]
+        table_data.append(row)
+    
+    df_table = pd.DataFrame(table_data, columns=[
+        'Year', 'R-squared', 'Adj. R-squared', 'F-statistic', 'Prob(F-statistic)', 'N',
+        'Learning', 'Search', 'Scalability', 'Generality', 'Principles'
+    ])
+    
+    latex_table = df_table.to_latex(index=False, float_format="%.3f", escape=False)
+    return latex_table
+
+# In your main code, after running the regressions:
+years = []
+models = []
+for year in sorted(df['year'].unique()):
+    year_df = df[df['year'] == year]
+    X = year_df[['learning_over_engineering_score', 'search_over_heuristics_score',
+                 'scalability_with_computation_score', 'generality_over_specificity_score',
+                 'favoring_fundamental_principles_score']]
+    y = np.log1p(year_df['citationCount'])
+    X_with_const = sm.add_constant(X)
+    model = sm.OLS(y, X_with_const).fit()
+    years.append(year)
+    models.append(model)
+
+latex_table = create_regression_table(years, models)
+print(latex_table)
+
+# %%
+# Query to get distinct models
+models_query = """
+SELECT DISTINCT model
+FROM bitter_lesson_scores_v2;
+"""
+
+# Execute the query to get distinct models
+models = pd.read_sql_query(models_query, conn)['model'].tolist()
+
+# Generate the COUNT expressions for each model
+count_expressions = [f"COUNT(CASE WHEN bls.model = '{model}' THEN 1 END) AS {model.replace('-', '_')}" for model in models]
+
+# Query to get the number of scores for each year and model
+query = f"""
+SELECT 
+    p.year,
+    {', '.join(count_expressions)}
+FROM papers p
+JOIN bitter_lesson_scores_v2 bls ON p.id = bls.paper_id
+GROUP BY p.year
+ORDER BY p.year;
+"""
+
+# Execute the query and fetch the results
+results = pd.read_sql_query(query, conn)
+
+# Print the results as a table
+print(results.to_string(index=False))
+
+
+# %%
+# Query to get distinct models
+models_query = """
+SELECT DISTINCT model
+FROM bitter_lesson_scores_v2;
+"""
+
+# Execute the query to get distinct models
+models = pd.read_sql_query(models_query, conn)['model'].tolist()
+
+# Generate the COUNT expressions for each filtered model
+count_expressions = [f"COUNT(CASE WHEN bls.model = '{model}' THEN 1 END) AS {model.replace('-', '_')}" for model in models]
+
+# Query to get the number of scores for each year and filtered model
+query = f"""
+SELECT 
+    p.year,
+    {', '.join(count_expressions)},
+    COUNT(DISTINCT p.id) AS total_papers
+FROM papers p
+JOIN bitter_lesson_scores_v2 bls ON p.id = bls.paper_id
+WHERE p.id IN (
+    SELECT paper_id
+    FROM bitter_lesson_scores_v2
+    WHERE model IN ({','.join(["'" + model + "'" for model in models])})
+    GROUP BY paper_id
+    HAVING COUNT(DISTINCT model) = {len(models)}
+)
+GROUP BY p.year
+ORDER BY p.year;
+"""
+
+# Execute the query and fetch the results
+results = pd.read_sql_query(query, conn)
+
+# Print the results as a table
+print(results.to_string(index=False))
+
+# %%
