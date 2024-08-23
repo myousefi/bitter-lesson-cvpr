@@ -8,6 +8,8 @@ from pathlib import Path
 from dotenv import load_dotenv
 import os
 
+import time
+
 load_dotenv()
 OUTPUT_DIR = os.getenv('NLP4SCIENCE_OUTPUT_DIR')
 OUTPUT_DIR = Path(OUTPUT_DIR)
@@ -145,6 +147,11 @@ fig.write_image(OUTPUT_DIR / "figs" / "krippendorff_alpha_across_dimensions_one_
 fig.write_image(OUTPUT_DIR / "figs" / "krippendorff_alpha_across_dimensions_two_column.svg", width=1200, height=900, scale=2)
 
 fig.show(renderer="browser")
+
+time.sleep(1)  # Wait for 1 second
+fig.write_image(OUTPUT_DIR / "figs" / "krippendorff_alpha_across_dimensions_one_column.pdf", 
+                width=600, height=450, scale=4, engine="kaleido")
+
 
 # Export results to LaTeX table
 def create_latex_table(alpha_results):
