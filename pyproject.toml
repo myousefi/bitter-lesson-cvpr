@@ -28,6 +28,7 @@ dependencies = [
     "pingouin>=0.5.4",
     "jinja2>=3.1.4",
     "krippendorff>=0.7.0",
+    "pyperclip>=1.9.0",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"
