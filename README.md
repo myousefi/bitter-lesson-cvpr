@@ -12,13 +12,14 @@ This project analyzes CVPR (Computer Vision and Pattern Recognition) papers to a
 - SQLite database storage for papers and evaluation scores
 - Multiple LLM evaluation implementations (GPT-4, Claude)
 - Scoring system across multiple bitter lesson dimensions:
-    - Learning over engineering
-    - Search over heuristics
-    - Scalability with computation
-    - Generality over specificity
-    - Favoring fundamental principles
+  - Learning over engineering
+  - Search over heuristics
+  - Scalability with computation
+  - Generality over specificity
+  - Favoring fundamental principles
 
 ## Project Structure
+
 
 bitter-lesson-cvpr/
 ├── src/
@@ -29,17 +30,21 @@ bitter-lesson-cvpr/
 ├── notebooks/ # Analysis notebooks
 ├── dbs/ # SQLite database storage
 
+
 ## Setup
 
 1. Clone the repository
 2. Install dependencies:
-    
-    pip install -r requirements.txt
-    
+
+
+pip install -r requirements.txt
+
+
 3. Set up environment variables:
-    - `MAGENTIC_ANTHROPIC_API_KEY` - Anthropic API key
-    - `S2_API_KEY` - Semantic Scholar API key
-    - `OUTPUT_DIR` - Directory for output files
+
+- `MAGENTIC_ANTHROPIC_API_KEY` - Anthropic API key
+- `S2_API_KEY` - Semantic Scholar API key
+- `OUTPUT_DIR` - Directory for output files
 
 ## Usage
 
@@ -82,7 +87,7 @@ The `notebooks` directory contains Plotly-based visualizations for:
 @inproceedings{yousefi-collins-2024-learning,
     title = "Learning the Bitter Lesson: Empirical Evidence from 20 Years of {CVPR} Proceedings",
     author = "Yousefi, Mojtaba  and       Collins, Jack",
-    editor = "Peled-Cohen, Lotem  and       Calderon, Nitay  and       Lissak, Shir  and       Reichart, Roi",
+    editor = "Peled-Cohen, Lotem  and       Nitay, Calderon  and       Lissak, Shir  and       Reichart, Roi",
     booktitle = "Proceedings of the 1st Workshop on NLP for Science (NLP4Science)",
     month = nov,
     year = "2024",
