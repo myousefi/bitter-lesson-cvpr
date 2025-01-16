@@ -1,5 +1,5 @@
 
-bitter-lesson-cvpr
+Bitter Lesson
 ==================
 
 A data analysis project to evaluate computer vision papers through the lens of Richard Sutton's _Bitter Lesson_ principles using large language models (LLMs).
